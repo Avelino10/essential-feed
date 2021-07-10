@@ -50,6 +50,17 @@ class LoadFeedFromCacheUseCaseTests: XCTestCase {
         })
     }
 
+    func test_load_deliversNoImagesOnSevenDaysOldCache() {
+        let feed = uniqueImageFeed()
+        let fixedCurrentDate = Date()
+        let sevenDaysOldTimestamp = fixedCurrentDate.adding(days: -7)
+        let (sut, store) = makeSUT(currentDate: { fixedCurrentDate })
+
+        expect(sut, toCompleteWith: .success([]), when: {
+            store.completeRetrieval(with: feed.local, timestamp: sevenDaysOldTimestamp)
+        })
+    }
+
     // MARK: - Helpers
 
     private func makeSUT(currentDate: @escaping () -> Date = Date.init, file: StaticString = #filePath, line: UInt = #line) -> (sut: LocalFeedLoader, store: FeedStoreSpy) {
@@ -101,7 +112,7 @@ class LoadFeedFromCacheUseCaseTests: XCTestCase {
 
 private extension Date {
     func adding(days: Int) -> Date {
-        Calendar(identifier: .gregorian).date(byAdding: .day, value: 7, to: self)!
+        Calendar(identifier: .gregorian).date(byAdding: .day, value: days, to: self)!
     }
 
     func adding(seconds: TimeInterval) -> Date {
