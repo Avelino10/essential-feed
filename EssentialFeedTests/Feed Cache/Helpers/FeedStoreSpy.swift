@@ -5,8 +5,8 @@
 //  Created by Avelino Rodrigues on 10/07/2021.
 //
 
-import Foundation
 import EssentialFeed
+import Foundation
 
 class FeedStoreSpy: FeedStore {
     enum ReceivedMessages: Equatable {
