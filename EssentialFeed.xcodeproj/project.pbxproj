@@ -41,6 +41,7 @@
 		FDFAF05B26B95A3D00861FAB /* CoreDataFeedStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDFAF05A26B95A3D00861FAB /* CoreDataFeedStoreTests.swift */; };
 		FDFAF06026B95BAC00861FAB /* CoreDataFeedStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDFAF05F26B95BAC00861FAB /* CoreDataFeedStore.swift */; };
 		FDFAF06626B95C4600861FAB /* FeedStore.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = FDFAF06426B95C4600861FAB /* FeedStore.xcdatamodeld */; };
+		FDFAF07226B97A7600861FAB /* CoreDataHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDFAF07126B97A7600861FAB /* CoreDataHelpers.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -98,6 +99,7 @@
 		FDFAF05A26B95A3D00861FAB /* CoreDataFeedStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreDataFeedStoreTests.swift; sourceTree = "<group>"; };
 		FDFAF05F26B95BAC00861FAB /* CoreDataFeedStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreDataFeedStore.swift; sourceTree = "<group>"; };
 		FDFAF06526B95C4600861FAB /* FeedStore.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = FeedStore.xcdatamodel; sourceTree = "<group>"; };
+		FDFAF07126B97A7600861FAB /* CoreDataHelpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreDataHelpers.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -268,6 +270,7 @@
 			isa = PBXGroup;
 			children = (
 				FDFAF05F26B95BAC00861FAB /* CoreDataFeedStore.swift */,
+				FDFAF07126B97A7600861FAB /* CoreDataHelpers.swift */,
 				FDFAF06426B95C4600861FAB /* FeedStore.xcdatamodeld */,
 			);
 			path = "Core Data";
@@ -437,6 +440,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				FDFAF07226B97A7600861FAB /* CoreDataHelpers.swift in Sources */,
 				FD9A6EEB2674C0450076F846 /* FeedItemsMapper.swift in Sources */,
 				FDB5401A266A68A20042A2E2 /* FeedLoader.swift in Sources */,
 				FD9DB9122693515F004073FA /* RemoteFeedItem.swift in Sources */,
