@@ -294,6 +294,23 @@
 			path = Helpers;
 			sourceTree = "<group>";
 		};
+		FD318A8326CD58AA002542BC /* Feed UI */ = {
+			isa = PBXGroup;
+			children = (
+				FD318A5926CD5664002542BC /* Controllers */,
+				FD318A5A26CD566B002542BC /* Views */,
+			);
+			path = "Feed UI";
+			sourceTree = "<group>";
+		};
+		FD318A8426CD58D5002542BC /* Feed UI */ = {
+			isa = PBXGroup;
+			children = (
+				FD318A5B26CD567F002542BC /* Controllers */,
+			);
+			path = "Feed UI";
+			sourceTree = "<group>";
+		};
 		FD6E5954268F5DA000053111 /* Feed Cache */ = {
 			isa = PBXGroup;
 			children = (
@@ -331,8 +348,7 @@
 		FDAA4D7F26BEBB9700C58CED /* EssentialFeediOS */ = {
 			isa = PBXGroup;
 			children = (
-				FD318A5926CD5664002542BC /* Controllers */,
-				FD318A5A26CD566B002542BC /* Views */,
+				FD318A8326CD58AA002542BC /* Feed UI */,
 				FDAA4D8126BEBB9700C58CED /* Info.plist */,
 			);
 			path = EssentialFeediOS;
@@ -343,7 +359,7 @@
 			children = (
 				FDAA4D8D26BEBB9700C58CED /* Info.plist */,
 				FD318A3726CD54FC002542BC /* Helpers */,
-				FD318A5B26CD567F002542BC /* Controllers */,
+				FD318A8426CD58D5002542BC /* Feed UI */,
 			);
 			path = EssentialFeediOSTests;
 			sourceTree = "<group>";
