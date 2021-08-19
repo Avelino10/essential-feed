@@ -6,7 +6,6 @@
 //
 
 import EssentialFeed
-import Foundation
 
 final class FeedViewModel {
     typealias Observer<T> = (T) -> Void
