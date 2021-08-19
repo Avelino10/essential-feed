@@ -5,7 +5,6 @@
 //  Created by Avelino Rodrigues on 07/08/2021.
 //
 
-import EssentialFeed
 import UIKit
 
 public final class FeedViewController: UITableViewController, UITableViewDataSourcePrefetching {
