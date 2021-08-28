@@ -19,6 +19,14 @@ class FeedPresenterTests: XCTestCase {
         XCTAssertTrue(view.messages.isEmpty, "Expected no view messages")
     }
 
+    /*func test_didStartLoadingFeed_displaysNoErrorMessage() {
+        let (sut, view) = makeSUT()
+
+        sut.didStartLoadingFeed()
+
+        XCTAssertEqual(view.messages, [.display(errorMessage: .none)])
+    }*/
+
     // MARK: - Helpers
 
     private func makeSUT(file: StaticString = #file, line: UInt = #line) -> (sut: FeedPresenter, view: ViewSpy) {
@@ -32,6 +40,10 @@ class FeedPresenterTests: XCTestCase {
     }
 
     private class ViewSpy {
-        let messages = [Any]()
+        enum Message: Equatable {
+            case display(errorMessage: String?)
+        }
+
+        let messages = [Message]()
     }
 }
