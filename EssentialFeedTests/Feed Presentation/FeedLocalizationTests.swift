@@ -1,6 +1,6 @@
 //
 //  FeedLocalizationTests.swift
-//  EssentialFeediOSTests
+//  EssentialFeedTests
 //
 //  Created by Avelino Rodrigues on 23/08/2021.
 //
