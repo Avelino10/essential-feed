@@ -113,6 +113,8 @@ class LoadFeedImageDataFromRemoteUseCaseTests: XCTestCase {
         XCTAssertTrue(capturedResults.isEmpty, "Expected no received results after cancelling task")
     }
 
+    // MARK: - Helpers
+
     private func makeSUT(url: URL = anyURL(), file: StaticString = #file, line: UInt = #line) -> (sut: RemoteFeedImageDataLoader, client: HTTPClientSpy) {
         let client = HTTPClientSpy()
         let sut = RemoteFeedImageDataLoader(client: client)
