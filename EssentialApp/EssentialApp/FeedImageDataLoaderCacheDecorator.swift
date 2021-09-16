@@ -1,5 +1,5 @@
 //
-//  FeedImageLoaderCacheDecorator.swift
+//  FeedImageDataLoaderCacheDecorator.swift
 //  EssentialApp
 //
 //  Created by Avelino Rodrigues on 15/09/2021.
@@ -8,7 +8,7 @@
 import EssentialFeed
 import Foundation
 
-public final class FeedImageLoaderCacheDecorator: FeedImageDataLoader {
+public final class FeedImageDataLoaderCacheDecorator: FeedImageDataLoader {
     private let decoratee: FeedImageDataLoader
     private let cache: FeedImageDataCache
 
