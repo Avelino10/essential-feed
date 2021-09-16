@@ -22,6 +22,7 @@
 		FD99004826F24E3900404106 /* XCTestCase+FeedImageDataLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD99004726F24E3900404106 /* XCTestCase+FeedImageDataLoader.swift */; };
 		FD99005326F251A700404106 /* FeedImageDataLoaderCacheDecorator.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD99005226F251A700404106 /* FeedImageDataLoaderCacheDecorator.swift */; };
 		FDA7EE6D26F391D500A09953 /* EssentialAppUIAcceptanceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDA7EE6C26F391D500A09953 /* EssentialAppUIAcceptanceTests.swift */; };
+		FDA7EE7926F39E3200A09953 /* DebuggingSceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDA7EE7826F39E3200A09953 /* DebuggingSceneDelegate.swift */; };
 		FDEA9DC826EA14E000A38305 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDEA9DC726EA14E000A38305 /* AppDelegate.swift */; };
 		FDEA9DCA26EA14E000A38305 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDEA9DC926EA14E000A38305 /* SceneDelegate.swift */; };
 		FDEA9DCF26EA14E000A38305 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = FDEA9DCD26EA14E000A38305 /* Main.storyboard */; };
@@ -83,6 +84,7 @@
 		FDA7EE6A26F391D500A09953 /* EssentialAppUIAcceptanceTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = EssentialAppUIAcceptanceTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		FDA7EE6C26F391D500A09953 /* EssentialAppUIAcceptanceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EssentialAppUIAcceptanceTests.swift; sourceTree = "<group>"; };
 		FDA7EE6E26F391D500A09953 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		FDA7EE7826F39E3200A09953 /* DebuggingSceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebuggingSceneDelegate.swift; sourceTree = "<group>"; };
 		FDEA9DC426EA14E000A38305 /* EssentialApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = EssentialApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		FDEA9DC726EA14E000A38305 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		FDEA9DC926EA14E000A38305 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -171,6 +173,7 @@
 			children = (
 				FDEA9DC726EA14E000A38305 /* AppDelegate.swift */,
 				FDEA9DC926EA14E000A38305 /* SceneDelegate.swift */,
+				FDA7EE7826F39E3200A09953 /* DebuggingSceneDelegate.swift */,
 				FD8E282926EFA90D00FD70CB /* FeedLoaderWithFallbackComposite.swift */,
 				FD8E286326F246FE00FD70CB /* FeedLoaderCacheDecorator.swift */,
 				FD8E283126F0933A00FD70CB /* FeedImageDataLoaderWithFallbackComposite.swift */,
@@ -350,6 +353,7 @@
 				FD8E282A26EFA90D00FD70CB /* FeedLoaderWithFallbackComposite.swift in Sources */,
 				FD8E286426F246FE00FD70CB /* FeedLoaderCacheDecorator.swift in Sources */,
 				FDEA9DCA26EA14E000A38305 /* SceneDelegate.swift in Sources */,
+				FDA7EE7926F39E3200A09953 /* DebuggingSceneDelegate.swift in Sources */,
 				FD99005326F251A700404106 /* FeedImageDataLoaderCacheDecorator.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
