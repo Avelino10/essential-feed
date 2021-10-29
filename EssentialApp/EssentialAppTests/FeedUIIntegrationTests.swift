@@ -5,6 +5,7 @@
 //  Created by Avelino Rodrigues on 07/08/2021.
 //
 
+import EssentialApp
 import EssentialFeed
 import EssentialFeediOS
 import XCTest
