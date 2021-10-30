@@ -5,12 +5,15 @@
 //  Created by Avelino Rodrigues on 18/08/2021.
 //
 
-import XCTest
 import EssentialFeed
 import EssentialFeediOS
+import XCTest
 
 extension FeedUIIntegrationTests {
     func assertThat(_ sut: FeedViewController, isRendering feed: [FeedImage], file: StaticString = #filePath, line: UInt = #line) {
+        sut.tableView.layoutIfNeeded()
+        RunLoop.main.run(until: Date())
+
         guard sut.numberOfRenderedFeedImageViews() == feed.count else {
             return XCTFail("Expected \(feed.count) images, got \(sut.numberOfRenderedFeedImageViews()) instead.", file: file, line: line)
         }
@@ -34,5 +37,4 @@ extension FeedUIIntegrationTests {
 
         XCTAssertEqual(cell.descriptionText, image.description, "Expected description text to be \(String(describing: image.description)) for image view at index (\(index))", file: file, line: line)
     }
-
 }
