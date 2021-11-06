@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		FD05C6692736A64D00D578BE /* CombineHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD05C6682736A64D00D578BE /* CombineHelpers.swift */; };
 		FD8E283726F0940600FD70CB /* XCTestCase+MemoryLeakTracking.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD8E283626F0940600FD70CB /* XCTestCase+MemoryLeakTracking.swift */; };
 		FD8E283C26F094C900FD70CB /* SharedTestHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD8E283B26F094C900FD70CB /* SharedTestHelpers.swift */; };
 		FD8E285126F23F3E00FD70CB /* FeedLoaderStub.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD8E285026F23F3E00FD70CB /* FeedLoaderStub.swift */; };
@@ -66,6 +67,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		FD05C6682736A64D00D578BE /* CombineHelpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CombineHelpers.swift; sourceTree = "<group>"; };
 		FD8E283626F0940600FD70CB /* XCTestCase+MemoryLeakTracking.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "XCTestCase+MemoryLeakTracking.swift"; sourceTree = "<group>"; };
 		FD8E283B26F094C900FD70CB /* SharedTestHelpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedTestHelpers.swift; sourceTree = "<group>"; };
 		FD8E285026F23F3E00FD70CB /* FeedLoaderStub.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedLoaderStub.swift; sourceTree = "<group>"; };
@@ -167,6 +169,7 @@
 			children = (
 				FDEA9DC726EA14E000A38305 /* AppDelegate.swift */,
 				FDEA9DC926EA14E000A38305 /* SceneDelegate.swift */,
+				FD05C6682736A64D00D578BE /* CombineHelpers.swift */,
 				FDC17602272C5153005A4A2F /* FeedUIComposer.swift */,
 				FDC17607272C5154005A4A2F /* WeakRefVirtualProxy.swift */,
 				FDC17604272C5154005A4A2F /* FeedImageDataLoaderPresentationAdapter.swift */,
@@ -308,6 +311,7 @@
 				FDEA9DCA26EA14E000A38305 /* SceneDelegate.swift in Sources */,
 				FDC17608272C5154005A4A2F /* FeedLoaderPresentationAdapter.swift in Sources */,
 				FDC1760A272C5154005A4A2F /* FeedUIComposer.swift in Sources */,
+				FD05C6692736A64D00D578BE /* CombineHelpers.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
