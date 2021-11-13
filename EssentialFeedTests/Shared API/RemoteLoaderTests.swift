@@ -1,5 +1,5 @@
 //
-//  LoadImageCommentsFromRemoteUseCaseTests.swift
+//  RemoteLoaderTests.swift
 //  EssentialFeedTests
 //
 //  Created by Avelino Rodrigues on 13/11/2021.
@@ -8,7 +8,7 @@
 import EssentialFeed
 import XCTest
 
-class LoadImageCommentsFromRemoteUseCaseTests: XCTestCase {
+class RemoteLoaderTests: XCTestCase {
     func test_init_doesNotRequestDataFromURL() {
         let (_, client) = makeSUT()
 
@@ -113,9 +113,9 @@ class LoadImageCommentsFromRemoteUseCaseTests: XCTestCase {
     func test_load_doesNotDeliverResultAfterSUTInstanceHasBeenDeallocated() {
         let url = URL(string: "http://any-url.com")!
         let client = HTTPClientSpy()
-        var sut: RemoteImageCommentsLoader? = RemoteImageCommentsLoader(url: url, client: client)
+        var sut: RemoteLoader? = RemoteLoader(url: url, client: client)
 
-        var capturedResults = [RemoteImageCommentsLoader.Result]()
+        var capturedResults = [RemoteLoader.Result]()
         sut?.load { capturedResults.append($0) }
 
         sut = nil
@@ -126,9 +126,9 @@ class LoadImageCommentsFromRemoteUseCaseTests: XCTestCase {
 
     // MARK: - Helpers
 
-    private func makeSUT(url: URL = URL(string: "https://a-url.com")!, file: StaticString = #filePath, line: UInt = #line) -> (sut: RemoteImageCommentsLoader, client: HTTPClientSpy) {
+    private func makeSUT(url: URL = URL(string: "https://a-url.com")!, file: StaticString = #filePath, line: UInt = #line) -> (sut: RemoteLoader, client: HTTPClientSpy) {
         let client = HTTPClientSpy()
-        let sut = RemoteImageCommentsLoader(url: url, client: client)
+        let sut = RemoteLoader(url: url, client: client)
 
         trackForMemoryLeaks(client, file: file, line: line)
         trackForMemoryLeaks(sut, file: file, line: line)
@@ -136,7 +136,7 @@ class LoadImageCommentsFromRemoteUseCaseTests: XCTestCase {
         return (sut, client)
     }
 
-    private func failure(_ error: RemoteImageCommentsLoader.Error) -> RemoteImageCommentsLoader.Result {
+    private func failure(_ error: RemoteLoader.Error) -> RemoteLoader.Result {
         .failure(error)
     }
 
@@ -160,14 +160,14 @@ class LoadImageCommentsFromRemoteUseCaseTests: XCTestCase {
         return try! JSONSerialization.data(withJSONObject: json)
     }
 
-    private func expect(_ sut: RemoteImageCommentsLoader, toCompleteWith expectedResult: RemoteImageCommentsLoader.Result, when action: () -> Void, file: StaticString = #filePath, line: UInt = #line) {
+    private func expect(_ sut: RemoteLoader, toCompleteWith expectedResult: RemoteLoader.Result, when action: () -> Void, file: StaticString = #filePath, line: UInt = #line) {
         let exp = expectation(description: "Wait for load completion")
 
         sut.load { receivedResult in
             switch (receivedResult, expectedResult) {
                 case let (.success(receivedItems), .success(expectedItems)):
                     XCTAssertEqual(receivedItems, expectedItems, file: file, line: line)
-                case let (.failure(receivedError as RemoteImageCommentsLoader.Error), .failure(expectedError as RemoteImageCommentsLoader.Error)):
+                case let (.failure(receivedError as RemoteLoader.Error), .failure(expectedError as RemoteLoader.Error)):
                     XCTAssertEqual(receivedError, expectedError, file: file, line: line)
                 default:
                     XCTFail("Expected result \(expectedResult) got \(receivedResult) instead", file: file, line: line)
