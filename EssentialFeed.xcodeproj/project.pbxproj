@@ -406,18 +406,10 @@
 		FD318A8326CD58AA002542BC /* Feed UI */ = {
 			isa = PBXGroup;
 			children = (
-				FD318AA026CD6411002542BC /* Composers */,
 				FD318A5926CD5664002542BC /* Controllers */,
 				FD318A5A26CD566B002542BC /* Views */,
 			);
 			path = "Feed UI";
-			sourceTree = "<group>";
-		};
-		FD318AA026CD6411002542BC /* Composers */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = Composers;
 			sourceTree = "<group>";
 		};
 		FD4822CA275A927600FFFD9D /* Image Comments Presentation */ = {
