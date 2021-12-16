@@ -57,6 +57,7 @@
 		FD9DB9052693424B004073FA /* LocalFeedLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD9DB9042693424B004073FA /* LocalFeedLoader.swift */; };
 		FD9DB90D2693429F004073FA /* FeedStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD9DB90C2693429F004073FA /* FeedStore.swift */; };
 		FD9DB91726935196004073FA /* LocalFeedImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD9DB91626935196004073FA /* LocalFeedImage.swift */; };
+		FDA24287276B8FBB00EA44A2 /* CellController.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDA24286276B8FBA00EA44A2 /* CellController.swift */; };
 		FDAA4D8726BEBB9700C58CED /* EssentialFeediOS.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FDAA4D7E26BEBB9700C58CED /* EssentialFeediOS.framework */; };
 		FDAA4DAA26BEC4DA00C58CED /* EssentialFeed.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FDB53FF5266A683B0042A2E2 /* EssentialFeed.framework */; platformFilter = ios; };
 		FDAA4DAB26BEC4DA00C58CED /* EssentialFeed.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = FDB53FF5266A683B0042A2E2 /* EssentialFeed.framework */; platformFilter = ios; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
@@ -228,6 +229,7 @@
 		FD9DB9042693424B004073FA /* LocalFeedLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalFeedLoader.swift; sourceTree = "<group>"; };
 		FD9DB90C2693429F004073FA /* FeedStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedStore.swift; sourceTree = "<group>"; };
 		FD9DB91626935196004073FA /* LocalFeedImage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalFeedImage.swift; sourceTree = "<group>"; };
+		FDA24286276B8FBA00EA44A2 /* CellController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CellController.swift; sourceTree = "<group>"; };
 		FDAA4D7E26BEBB9700C58CED /* EssentialFeediOS.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = EssentialFeediOS.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		FDAA4D8126BEBB9700C58CED /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		FDAA4D8626BEBB9700C58CED /* EssentialFeediOSTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = EssentialFeediOSTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -625,6 +627,7 @@
 			isa = PBXGroup;
 			children = (
 				FDAA4DBA26BECC0200C58CED /* ListViewController.swift */,
+				FDA24286276B8FBA00EA44A2 /* CellController.swift */,
 			);
 			path = Controllers;
 			sourceTree = "<group>";
@@ -1126,6 +1129,7 @@
 				FD08039A272D931F00925A90 /* UITableView+HeaderSizing.swift in Sources */,
 				FD225C8726DA804A001A0631 /* ErrorView.swift in Sources */,
 				FD225CA526DA836A001A0631 /* UIRefreshControl+Helpers.swift in Sources */,
+				FDA24287276B8FBB00EA44A2 /* CellController.swift in Sources */,
 				FD318B0B26CFB156002542BC /* UITableView+Dequeueing.swift in Sources */,
 				FD318A3126CBCD21002542BC /* UIView+Shimmering.swift in Sources */,
 				FD318B1226CFB221002542BC /* UIImageView+Animations.swift in Sources */,
