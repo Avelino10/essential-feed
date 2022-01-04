@@ -13,7 +13,6 @@ public final class ErrorView: UIButton {
         set { setMessageAnimated(newValue) }
     }
 
-
     public var onHide: (() -> Void)?
     override public init(frame: CGRect) {
         super.init(frame: frame)
