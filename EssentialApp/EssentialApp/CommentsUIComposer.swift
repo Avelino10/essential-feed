@@ -13,10 +13,12 @@ import UIKit
 public final class CommentsUIComposer {
     private init() {}
 
+    private typealias CommentsPresentationAdapter = LoadResourcePresentationAdapter<[ImageComment], CommmentsViewAdapter>
+
     public static func commentsComposedWith(
         commentsLoader: @escaping () -> AnyPublisher<[ImageComment], Error>
     ) -> ListViewController {
-        let presentationAdapter = LoadResourcePresentationAdapter<[ImageComment], CommmentsViewAdapter>(loader: commentsLoader)
+        let presentationAdapter = CommentsPresentationAdapter(loader: commentsLoader)
 
         let commentsViewController = makeCommentsViewController(title: ImageCommentsPresenter.title)
         commentsViewController.onRefresh = presentationAdapter.loadResource
