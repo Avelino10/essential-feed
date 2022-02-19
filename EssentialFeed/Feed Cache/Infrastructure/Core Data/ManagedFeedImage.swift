@@ -19,6 +19,8 @@ class ManagedFeedImage: NSManagedObject {
 
 extension ManagedFeedImage {
     static func data(with url: URL, in context: NSManagedObjectContext) throws -> Data? {
+        if let data = context.userInfo[url] as? Data { return data }
+
         return try first(with: url, in: context)?.data
     }
 
@@ -32,7 +34,7 @@ extension ManagedFeedImage {
     }
 
     static func images(from localFeed: [LocalFeedImage], in context: NSManagedObjectContext) -> NSOrderedSet {
-        NSOrderedSet(array: localFeed.map { local in
+        let images = NSOrderedSet(array: localFeed.map { local in
             let managed = ManagedFeedImage(context: context)
             managed.id = local.id
             managed.imageDescription = local.description
@@ -40,9 +42,18 @@ extension ManagedFeedImage {
             managed.url = local.url
             return managed
         })
+
+        context.userInfo.removeAllObjects()
+        return images
     }
 
     var local: LocalFeedImage {
         return LocalFeedImage(id: id, description: imageDescription, location: location, url: url)
+    }
+
+    override func prepareForDeletion() {
+        super.prepareForDeletion()
+
+        managedObjectContext?.userInfo[url] = data
     }
 }
