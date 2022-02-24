@@ -93,28 +93,22 @@ extension FeedStoreSpecs where Self: XCTestCase {
 extension FeedStoreSpecs where Self: XCTestCase {
     @discardableResult
     func deleteCache(from sut: FeedStore) -> Error? {
-        var deletionError: Error?
-
         do {
             try sut.deleteCachedFeed()
+            return nil
         } catch {
-            deletionError = error
+            return error
         }
-
-        return deletionError
     }
 
     @discardableResult
     func insert(_ cache: (feed: [LocalFeedImage], timestamp: Date), to sut: FeedStore) -> Error? {
-        var insertionError: Error?
-
         do {
             try sut.insert(cache.feed, timestamp: cache.timestamp)
+            return nil
         } catch {
-            insertionError = error
+            return error
         }
-
-        return insertionError
     }
 
     func expect(_ sut: FeedStore, toRetrieveTwice expectedResult: Result<CachedFeed?, Error>, file: StaticString = #filePath, line: UInt = #line) {
@@ -123,7 +117,7 @@ extension FeedStoreSpecs where Self: XCTestCase {
     }
 
     func expect(_ sut: FeedStore, toRetrieve expectedResult: Result<CachedFeed?, Error>, file: StaticString = #filePath, line: UInt = #line) {
-        let retrievedResult = Result { try? sut.retrieve() }
+        let retrievedResult = Result { try sut.retrieve() }
         switch (expectedResult, retrievedResult) {
             case (.success(.none), .success(.none)),
                  (.failure, .failure):
