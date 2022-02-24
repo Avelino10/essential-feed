@@ -85,7 +85,9 @@ public extension LocalFeedLoader {
 
     func loadPublisher() -> Publisher {
         Deferred {
-            Future(self.load)
+            Future { completion in
+                completion(Result { try self.load() })
+            }
         }
         .eraseToAnyPublisher()
     }
@@ -178,6 +180,7 @@ extension AnyDispatchQueueScheduler {
         DispatchQueue.immediateWhenOnMainQueueScheduler.eraseToAnyScheduler()
     }
 }
+
 extension Scheduler {
     func eraseToAnyScheduler() -> AnyScheduler<SchedulerTimeType, SchedulerOptions> {
         AnyScheduler(self)
