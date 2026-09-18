@@ -46,7 +46,7 @@ Test targets mirror this structure:
 Open the workspace (not the standalone project) to build and run the full app:
 
 ```
-open EssentialApp/EssentialApp.xcworkspace
+open EssentialApp.xcworkspace
 ```
 
 Select the `EssentialApp` scheme and run on a simulator or device.
@@ -60,20 +60,22 @@ Tests can be run from Xcode via **Product ▸ Test**, or from the command line u
 ```bash
 # Core framework (macOS)
 xcodebuild clean build test \
-  -project EssentialFeed/EssentialFeed.xcodeproj \
+  -project EssentialFeed.xcodeproj \
   -scheme "CI_macOS" \
   -sdk macosx -destination "platform=macOS"
 
 # Full app (iOS Simulator)
 xcodebuild clean build test \
-  -workspace EssentialApp/EssentialApp.xcworkspace \
+  -workspace EssentialApp.xcworkspace \
   -scheme "CI_iOS" \
-  -sdk iphonesimulator -destination "platform=iOS Simulator,OS=12.2,name=iPhone 8"
+  -sdk iphonesimulator -destination "platform=iOS Simulator,name=iPhone 15,OS=17.5"
 ```
 
 ## Continuous integration
 
-Builds and tests run on Travis CI (see `.travis.yml`), executing both the `CI_macOS` and `CI_iOS` schemes on every push.
+Builds and tests run on GitHub Actions (see `.github/workflows/ci.yml`), executing both the `CI_macOS` and `CI_iOS` schemes on every push and pull request to `master`.
+
+The `CI_iOS` scheme currently skips `FeedSnapshotTests`, `ListSnapshotTests`, and `ImageCommentsSnapshotTests`, plus a handful of individual tests in `FeedUIIntegrationTests`, `FeedAcceptanceTests`, and `CommentsUIIntegrationTests` (see the scheme's `SkippedTests`). These predate this CI setup and fail on any current iOS Simulator/Xcode version — the snapshot references and pixel/byte-count assertions were captured against a much older toolchain, and one relies on `UIRefreshControl` behavior that changed in later iOS versions. Fixing them requires re-recording snapshots and reworking those assertions, tracked separately from CI itself.
 
 ## Architecture notes
 
