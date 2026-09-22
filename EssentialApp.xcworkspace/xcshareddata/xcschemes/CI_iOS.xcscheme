@@ -97,17 +97,6 @@
                BlueprintName = "EssentialFeediOSTests"
                ReferencedContainer = "container:EssentialFeed.xcodeproj">
             </BuildableReference>
-            <SkippedTests>
-               <Test
-                  Identifier = "FeedSnapshotTests">
-               </Test>
-               <Test
-                  Identifier = "ListSnapshotTests">
-               </Test>
-               <Test
-                  Identifier = "ImageCommentsSnapshotTests">
-               </Test>
-            </SkippedTests>
          </TestableReference>
          <TestableReference
             skipped = "NO"
@@ -119,23 +108,6 @@
                BlueprintName = "EssentialAppTests"
                ReferencedContainer = "container:EssentialApp/EssentialApp.xcodeproj">
             </BuildableReference>
-            <SkippedTests>
-               <Test
-                  Identifier = "FeedUIIntegrationTests/test_feedImageView_rendersImageLoadedFromURL">
-               </Test>
-               <Test
-                  Identifier = "FeedUIIntegrationTests/test_loadingFeedIndicator_isVisibleWhileLoadingFeed">
-               </Test>
-               <Test
-                  Identifier = "FeedAcceptanceTests/test_onLaunch_displaysRemoteFeedWhenCustomerHasConnectivity">
-               </Test>
-               <Test
-                  Identifier = "FeedAcceptanceTests/test_onLaunch_displaysCachedRemoteFeedWhenCustomerHasNoConnectivity">
-               </Test>
-               <Test
-                  Identifier = "CommentsUIIntegrationTests/test_loadingCommentsIndicator_isVisibleWhileLoadingComments">
-               </Test>
-            </SkippedTests>
          </TestableReference>
       </Testables>
    </TestAction>

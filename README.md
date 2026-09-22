@@ -75,7 +75,7 @@ xcodebuild clean build test \
 
 Builds and tests run on GitHub Actions (see `.github/workflows/ci.yml`), executing both the `CI_macOS` and `CI_iOS` schemes on every push and pull request to `master`.
 
-The `CI_iOS` scheme currently skips `FeedSnapshotTests`, `ListSnapshotTests`, and `ImageCommentsSnapshotTests`, plus a handful of individual tests in `FeedUIIntegrationTests`, `FeedAcceptanceTests`, and `CommentsUIIntegrationTests` (see the scheme's `SkippedTests`). These predate this CI setup and fail on any current iOS Simulator/Xcode version — the snapshot references and pixel/byte-count assertions were captured against a much older toolchain, and one relies on `UIRefreshControl` behavior that changed in later iOS versions. Fixing them requires re-recording snapshots and reworking those assertions, tracked separately from CI itself.
+The iOS job currently passes `-skip-testing:` flags excluding `FeedSnapshotTests`, `ListSnapshotTests`, and `ImageCommentsSnapshotTests`, plus a handful of individual tests in `FeedUIIntegrationTests`, `FeedAcceptanceTests`, and `CommentsUIIntegrationTests` (see `.github/workflows/ci.yml`). These predate this CI setup and fail on any current iOS Simulator/Xcode version — the snapshot references and pixel/byte-count assertions were captured against a much older toolchain, and one relies on `UIRefreshControl` behavior that changed in later iOS versions. Fixing them requires re-recording snapshots and reworking those assertions, tracked separately from CI itself.
 
 ## Architecture notes
 
