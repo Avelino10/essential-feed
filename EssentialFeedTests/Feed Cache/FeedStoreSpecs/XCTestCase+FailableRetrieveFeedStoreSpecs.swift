@@ -9,11 +9,11 @@ import EssentialFeed
 import XCTest
 
 extension FailableRetrieveFeedStoreSpecs where Self: XCTestCase {
-    func assertThatRetriveDeliversErrorOnInsertionError(on sut: FeedStore, file: StaticString = #file, line: UInt = #line) {
+    func assertThatRetriveDeliversErrorOnInsertionError(on sut: FeedStore, file: StaticString = #filePath, line: UInt = #line) {
         expect(sut, toRetrieve: .failure(anyNSError()))
     }
 
-    func assertThatRetriveHasNoSideEffectsOnFailure(on sut: FeedStore, file: StaticString = #file, line: UInt = #line) {
+    func assertThatRetriveHasNoSideEffectsOnFailure(on sut: FeedStore, file: StaticString = #filePath, line: UInt = #line) {
         expect(sut, toRetrieveTwice: .failure(anyNSError()))
     }
 }
