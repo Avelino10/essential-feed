@@ -25,7 +25,14 @@ public final class ListViewController: UITableViewController, UITableViewDataSou
 
         tableView.dataSource = dataSource
         configureErrorView()
+        configureTraitChangeHandling()
         refresh()
+    }
+
+    private func configureTraitChangeHandling() {
+        registerForTraitChanges([UITraitPreferredContentSizeCategory.self]) { (self: Self, _: UITraitCollection) in
+            self.tableView.reloadData()
+        }
     }
 
     private func configureErrorView() {
@@ -54,12 +61,6 @@ public final class ListViewController: UITableViewController, UITableViewDataSou
         super.viewDidLayoutSubviews()
 
         tableView.sizeTableHeaderToFit()
-    }
-
-    override public func traitCollectionDidChange(_ previous: UITraitCollection?) {
-        if previous?.preferredContentSizeCategory != traitCollection.preferredContentSizeCategory {
-            tableView.reloadData()
-        }
     }
 
     @IBAction private func refresh() {
