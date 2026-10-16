@@ -17,24 +17,24 @@ struct SnapshotConfiguration {
     let size: CGSize
     let safeAreaInsets: UIEdgeInsets
     let layoutMargins: UIEdgeInsets
-    let traitCollection: UITraitCollection
+    let traits: (inout UIMutableTraits) -> Void
 
     static func iPhone8(style: UIUserInterfaceStyle, contentSize: UIContentSizeCategory = .medium) -> SnapshotConfiguration {
         return SnapshotConfiguration(
             size: CGSize(width: 375, height: 667),
             safeAreaInsets: UIEdgeInsets(top: 20, left: 0, bottom: 0, right: 0),
             layoutMargins: UIEdgeInsets(top: 20, left: 16, bottom: 0, right: 16),
-            traitCollection: UITraitCollection(traitsFrom: [
-                .init(forceTouchCapability: .available),
-                .init(layoutDirection: .leftToRight),
-                .init(preferredContentSizeCategory: contentSize),
-                .init(userInterfaceIdiom: .phone),
-                .init(horizontalSizeClass: .regular),
-                .init(verticalSizeClass: .compact),
-                .init(displayScale: 2),
-                .init(displayGamut: .P3),
-                .init(userInterfaceStyle: style),
-            ]))
+            traits: { traits in
+                traits.forceTouchCapability = .available
+                traits.layoutDirection = .leftToRight
+                traits.preferredContentSizeCategory = contentSize
+                traits.userInterfaceIdiom = .phone
+                traits.horizontalSizeClass = .regular
+                traits.verticalSizeClass = .compact
+                traits.displayScale = 2
+                traits.displayGamut = .P3
+                traits.userInterfaceStyle = style
+            })
     }
 }
 
@@ -55,7 +55,7 @@ private final class SnapshotWindow: UIWindow {
     }
 
     override var traitCollection: UITraitCollection {
-        return UITraitCollection(traitsFrom: [super.traitCollection, configuration.traitCollection])
+        return super.traitCollection.modifyingTraits(configuration.traits)
     }
 
     func snapshot() -> UIImage {
