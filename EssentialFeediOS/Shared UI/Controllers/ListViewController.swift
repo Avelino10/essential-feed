@@ -19,6 +19,7 @@ public final class ListViewController: UITableViewController, UITableViewDataSou
     }()
 
     public var onRefresh: (() -> Void)?
+    private var hasLoadedOnAppearance = false
 
     override public func viewDidLoad() {
         super.viewDidLoad()
@@ -26,7 +27,17 @@ public final class ListViewController: UITableViewController, UITableViewDataSou
         tableView.dataSource = dataSource
         configureErrorView()
         configureTraitChangeHandling()
-        refresh()
+    }
+
+    override public func viewIsAppearing(_ animated: Bool) {
+        super.viewIsAppearing(animated)
+
+        // Load on first appearance rather than in viewDidLoad: since iOS 17,
+        // UIRefreshControl ignores beginRefreshing() until its view is in a window.
+        if !hasLoadedOnAppearance {
+            hasLoadedOnAppearance = true
+            refresh()
+        }
     }
 
     private func configureTraitChangeHandling() {
