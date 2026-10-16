@@ -1,1 +1,3 @@
-EssentialApp.xcworkspace/xcuserdata/arodrigues.xcuserdatad/UserInterfaceState.xcuserstate
+# Xcode per-user state
+xcuserdata/
+*.xcuserstate
