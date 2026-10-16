@@ -15,6 +15,30 @@ extension ListViewController {
         tableView.frame = CGRect(x: 0, y: 0, width: 1, height: 1)
     }
 
+    func simulateAppearance() {
+        if !isViewLoaded {
+            loadViewIfNeeded()
+            replaceRefreshControlWithFakeForiOS17PlusSupport()
+        }
+
+        beginAppearanceTransition(true, animated: false)
+        endAppearanceTransition()
+    }
+
+    /// Since iOS 17, `UIRefreshControl` ignores `beginRefreshing()` while its view isn't in a window,
+    /// so tests swap in a fake that keeps the pull-to-refresh actions and records the refreshing state.
+    private func replaceRefreshControlWithFakeForiOS17PlusSupport() {
+        let fake = FakeRefreshControl()
+
+        refreshControl?.allTargets.forEach { target in
+            refreshControl?.actions(forTarget: target, forControlEvent: .valueChanged)?.forEach { action in
+                fake.addTarget(target, action: Selector(action), for: .valueChanged)
+            }
+        }
+
+        refreshControl = fake
+    }
+
     func simulateUserInitiatedReload() {
         refreshControl?.simulatePullToRefresh()
     }
@@ -150,4 +174,18 @@ extension ListViewController {
 
     private var feedImagesSection: Int { 0 }
     private var feedLoadMoreSection: Int { 1 }
+}
+
+private final class FakeRefreshControl: UIRefreshControl {
+    private var _isRefreshing = false
+
+    override var isRefreshing: Bool { _isRefreshing }
+
+    override func beginRefreshing() {
+        _isRefreshing = true
+    }
+
+    override func endRefreshing() {
+        _isRefreshing = false
+    }
 }
