@@ -136,7 +136,7 @@ extension ListViewController {
         cell(row: 0, section: feedLoadMoreSection) as? LoadMoreCell
     }
 
-    func renderedFeedImageData(at index: Int) -> Data? {
+    func renderedFeedImageData(at index: Int) -> [UInt8]? {
         return simulateFeedImageViewVisible(at: index)?.renderedImage
     }
 

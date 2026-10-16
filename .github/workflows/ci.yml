@@ -38,10 +38,7 @@ jobs:
             -skip-testing:EssentialFeediOSTests/FeedSnapshotTests \
             -skip-testing:EssentialFeediOSTests/ListSnapshotTests \
             -skip-testing:EssentialFeediOSTests/ImageCommentsSnapshotTests \
-            -skip-testing:EssentialAppTests/FeedUIIntegrationTests/test_feedImageView_rendersImageLoadedFromURL \
             -skip-testing:EssentialAppTests/FeedUIIntegrationTests/test_loadingFeedIndicator_isVisibleWhileLoadingFeed \
-            -skip-testing:EssentialAppTests/FeedAcceptanceTests/test_onLaunch_displaysRemoteFeedWhenCustomerHasConnectivity \
-            -skip-testing:EssentialAppTests/FeedAcceptanceTests/test_onLaunch_displaysCachedRemoteFeedWhenCustomerHasNoConnectivity \
             -skip-testing:EssentialAppTests/CommentsUIIntegrationTests/test_loadingCommentsIndicator_isVisibleWhileLoadingComments \
             CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO \
             ONLY_ACTIVE_ARCH=YES
