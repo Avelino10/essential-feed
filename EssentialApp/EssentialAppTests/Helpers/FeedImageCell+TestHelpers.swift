@@ -33,7 +33,7 @@ extension FeedImageCell {
         descriptionLabel.text
     }
 
-    var renderedImage: Data? {
-        feedImageView.image?.pngData()
+    var renderedImage: [UInt8]? {
+        feedImageView.image?.pixels
     }
 }

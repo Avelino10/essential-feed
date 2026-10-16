@@ -19,13 +19,31 @@ public final class ListViewController: UITableViewController, UITableViewDataSou
     }()
 
     public var onRefresh: (() -> Void)?
+    private var hasLoadedOnAppearance = false
 
     override public func viewDidLoad() {
         super.viewDidLoad()
 
         tableView.dataSource = dataSource
         configureErrorView()
-        refresh()
+        configureTraitChangeHandling()
+    }
+
+    override public func viewIsAppearing(_ animated: Bool) {
+        super.viewIsAppearing(animated)
+
+        // Load on first appearance rather than in viewDidLoad: since iOS 17,
+        // UIRefreshControl ignores beginRefreshing() until its view is in a window.
+        if !hasLoadedOnAppearance {
+            hasLoadedOnAppearance = true
+            refresh()
+        }
+    }
+
+    private func configureTraitChangeHandling() {
+        registerForTraitChanges([UITraitPreferredContentSizeCategory.self]) { (self: Self, _: UITraitCollection) in
+            self.tableView.reloadData()
+        }
     }
 
     private func configureErrorView() {
@@ -56,12 +74,6 @@ public final class ListViewController: UITableViewController, UITableViewDataSou
         tableView.sizeTableHeaderToFit()
     }
 
-    override public func traitCollectionDidChange(_ previous: UITraitCollection?) {
-        if previous?.preferredContentSizeCategory != traitCollection.preferredContentSizeCategory {
-            tableView.reloadData()
-        }
-    }
-
     @IBAction private func refresh() {
         onRefresh?()
     }
@@ -73,11 +85,7 @@ public final class ListViewController: UITableViewController, UITableViewDataSou
             snapshot.appendItems(cellControllers, toSection: section)
         }
 
-        if #available(iOS 15.0, *) {
-            dataSource.applySnapshotUsingReloadData(snapshot)
-        } else {
-            dataSource.apply(snapshot)
-        }
+        dataSource.applySnapshotUsingReloadData(snapshot)
     }
 
     public func display(_ viewModel: ResourceLoadingViewModel) {
