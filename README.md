@@ -37,9 +37,11 @@ Test targets mirror this structure:
 
 ## Requirements
 
-- Xcode with Swift 5.0 toolchain
-- iOS deployment target 14.4+
-- macOS deployment target 11.1+ (for the framework's macOS test target)
+- Xcode 27 (Swift 5 language mode)
+- iOS 18.0+
+- macOS 15.0+ (for the framework's macOS test target)
+
+The minimum OS versions follow an N-2 policy: the current major release plus the two before it.
 
 ## Getting started
 
@@ -59,23 +61,29 @@ Tests can be run from Xcode via **Product ▸ Test**, or from the command line u
 
 ```bash
 # Core framework (macOS)
-xcodebuild clean build test \
+xcodebuild test \
   -project EssentialFeed.xcodeproj \
   -scheme "CI_macOS" \
-  -sdk macosx -destination "platform=macOS"
+  -destination "platform=macOS" \
+  -collect-test-diagnostics never
 
 # Full app (iOS Simulator)
-xcodebuild clean build test \
+xcodebuild test \
   -workspace EssentialApp.xcworkspace \
   -scheme "CI_iOS" \
-  -sdk iphonesimulator -destination "platform=iOS Simulator,name=iPhone 15,OS=17.5"
+  -destination "platform=iOS Simulator,name=iPhone 18 Pro,OS=27.0" \
+  -collect-test-diagnostics never
 ```
+
+`-collect-test-diagnostics never` stops xcodebuild from spending minutes collecting simulator diagnostics after a failing test.
+
+Snapshot tests compare pixel-exact renders, so run them on **iPhone 18 Pro / iOS 27.0**, the simulator the reference images were recorded on. Rendering can differ between OS versions, so other simulators may fail the comparison.
 
 ## Continuous integration
 
-Builds and tests run on GitHub Actions (see `.github/workflows/ci.yml`), executing both the `CI_macOS` and `CI_iOS` schemes on every push and pull request to `master`.
+Builds and tests run on GitHub Actions (see `.github/workflows/ci.yml`), running the `CI_macOS` and `CI_iOS` schemes on every push and pull request to `master`.
 
-The iOS job currently passes `-skip-testing:` flags excluding `FeedSnapshotTests`, `ListSnapshotTests`, and `ImageCommentsSnapshotTests`, plus a handful of individual tests in `FeedUIIntegrationTests`, `FeedAcceptanceTests`, and `CommentsUIIntegrationTests` (see `.github/workflows/ci.yml`). These predate this CI setup and fail on any current iOS Simulator/Xcode version — the snapshot references and pixel/byte-count assertions were captured against a much older toolchain, and one relies on `UIRefreshControl` behavior that changed in later iOS versions. Fixing them requires re-recording snapshots and reworking those assertions, tracked separately from CI itself.
+Both jobs run on the `xcode-27` runner with Xcode 27.0, and the iOS job uses the iPhone 18 Pro / iOS 27.0 simulator. No tests are skipped.
 
 ## Architecture notes
 
