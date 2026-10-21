@@ -25,6 +25,7 @@ public final class ListViewController: UITableViewController, UITableViewDataSou
         super.viewDidLoad()
 
         tableView.dataSource = dataSource
+        configureRefreshControl()
         configureErrorView()
         configureTraitChangeHandling()
     }
@@ -38,6 +39,11 @@ public final class ListViewController: UITableViewController, UITableViewDataSou
             hasLoadedOnAppearance = true
             refresh()
         }
+    }
+
+    private func configureRefreshControl() {
+        refreshControl = UIRefreshControl()
+        refreshControl?.addTarget(self, action: #selector(refresh), for: .valueChanged)
     }
 
     private func configureTraitChangeHandling() {
@@ -74,7 +80,7 @@ public final class ListViewController: UITableViewController, UITableViewDataSou
         tableView.sizeTableHeaderToFit()
     }
 
-    @IBAction private func refresh() {
+    @objc private func refresh() {
         onRefresh?()
     }
 
