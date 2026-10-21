@@ -39,15 +39,19 @@ jobs:
       - name: Show Xcode version
         run: xcodebuild -version
 
+      - name: Create iPhone 18 Pro simulator if missing
+        run: |
+          xcrun simctl list devices "iOS 27.0" | grep -q "iPhone 18 Pro (" ||
+            xcrun simctl create "iPhone 18 Pro" \
+              com.apple.CoreSimulator.SimDeviceType.iPhone-18-Pro \
+              com.apple.CoreSimulator.SimRuntime.iOS-27-0
+
       - name: Build and test
         run: |
           xcodebuild test \
             -workspace EssentialApp.xcworkspace \
             -scheme "CI_iOS" \
-            -destination "platform=iOS Simulator,name=iPhone 17,OS=27.0" \
+            -destination "platform=iOS Simulator,name=iPhone 18 Pro,OS=27.0" \
             -collect-test-diagnostics never \
-            -skip-testing:EssentialFeediOSTests/FeedSnapshotTests \
-            -skip-testing:EssentialFeediOSTests/ListSnapshotTests \
-            -skip-testing:EssentialFeediOSTests/ImageCommentsSnapshotTests \
             CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO \
             ONLY_ACTIVE_ARCH=YES
