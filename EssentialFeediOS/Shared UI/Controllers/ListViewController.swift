@@ -24,7 +24,7 @@ public final class ListViewController: UITableViewController, UITableViewDataSou
     override public func viewDidLoad() {
         super.viewDidLoad()
 
-        tableView.dataSource = dataSource
+        configureTableView()
         configureRefreshControl()
         configureErrorView()
         configureTraitChangeHandling()
@@ -39,6 +39,19 @@ public final class ListViewController: UITableViewController, UITableViewDataSou
             hasLoadedOnAppearance = true
             refresh()
         }
+    }
+
+    private func configureTableView() {
+        tableView.dataSource = dataSource
+        tableView.prefetchDataSource = self
+        tableView.separatorStyle = .none
+        tableView.tableFooterView = makeFooterView()
+    }
+
+    private func makeFooterView() -> UIView {
+        let footer = UIView(frame: CGRect(x: 0, y: 0, width: 0, height: 16))
+        footer.backgroundColor = .systemBackground
+        return footer
     }
 
     private func configureRefreshControl() {
