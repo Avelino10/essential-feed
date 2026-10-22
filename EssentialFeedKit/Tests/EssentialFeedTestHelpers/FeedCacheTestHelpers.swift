@@ -1,6 +1,6 @@
 //
 //  FeedCacheTestHelpers.swift
-//  EssentialFeedTests
+//  EssentialFeedTestHelpers
 //
 //  Created by Avelino Rodrigues on 19/07/2021.
 //
@@ -8,11 +8,11 @@
 import EssentialFeed
 import Foundation
 
-func uniqueImage() -> FeedImage {
+public func uniqueImage() -> FeedImage {
     return FeedImage(id: UUID(), description: "any", location: "any", url: anyURL())
 }
 
-func uniqueImageFeed() -> (models: [FeedImage], local: [LocalFeedImage]) {
+public func uniqueImageFeed() -> (models: [FeedImage], local: [LocalFeedImage]) {
     let models = [uniqueImage(), uniqueImage()]
     let local = models.map { LocalFeedImage(id: $0.id, description: $0.description, location: $0.location, url: $0.url) }
 
@@ -20,7 +20,7 @@ func uniqueImageFeed() -> (models: [FeedImage], local: [LocalFeedImage]) {
 }
 
 extension Date {
-    func minusFeedCacheMaxAge() -> Date {
+    public func minusFeedCacheMaxAge() -> Date {
         adding(days: -feedCacheMaxAgeInDays)
     }
 

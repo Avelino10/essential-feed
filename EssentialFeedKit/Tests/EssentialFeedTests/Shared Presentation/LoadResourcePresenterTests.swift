@@ -5,7 +5,8 @@
 //  Created by Avelino Rodrigues on 29/11/2021.
 //
 
-import EssentialFeed
+@testable import EssentialFeed
+import EssentialFeedTestHelpers
 import XCTest
 
 class LoadResourcePresenterTests: XCTestCase {
@@ -83,7 +84,7 @@ class LoadResourcePresenterTests: XCTestCase {
 
     private func localized(_ key: String, file: StaticString = #filePath, line: UInt = #line) -> String {
         let table = "Shared"
-        let bundle = Bundle(for: SUT.self)
+        let bundle = Bundle.essentialFeed
         let value = bundle.localizedString(forKey: key, value: nil, table: table)
 
         if value == key {

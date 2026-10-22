@@ -5,13 +5,13 @@
 //  Created by Avelino Rodrigues on 03/12/2021.
 //
 
-import EssentialFeed
+@testable import EssentialFeed
 import XCTest
 
 class ImageCommentsLocalizationTests: XCTestCase {
     func test_localizedStrings_haveKeysAndValuesForAllSuportedLocalizations() {
         let table = "ImageComments"
-        let bundle = Bundle(for: ImageCommentsPresenter.self)
+        let bundle = Bundle.essentialFeed
         assertLocalizedKeyAndValuesExist(in: bundle, table)
     }
 }

@@ -5,7 +5,8 @@
 //  Created by Avelino Rodrigues on 03/12/2021.
 //
 
-import EssentialFeed
+@testable import EssentialFeed
+import EssentialFeedTestHelpers
 import XCTest
 
 class ImageCommentsPresenterTests: XCTestCase {
@@ -56,7 +57,7 @@ class ImageCommentsPresenterTests: XCTestCase {
 
     private func localized(_ key: String, file: StaticString = #filePath, line: UInt = #line) -> String {
         let table = "ImageComments"
-        let bundle = Bundle(for: ImageCommentsPresenter.self)
+        let bundle = Bundle.essentialFeed
         let value = bundle.localizedString(forKey: key, value: nil, table: table)
 
         if value == key {

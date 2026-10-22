@@ -5,13 +5,13 @@
 //  Created by Avelino Rodrigues on 23/08/2021.
 //
 
-import EssentialFeed
+@testable import EssentialFeed
 import XCTest
 
 final class FeedLocalizationTests: XCTestCase {
     func test_localizedStrings_haveKeysAndValuesForAllSuportedLocalizations() {
         let table = "Feed"
-        let bundle = Bundle(for: FeedPresenter.self)
+        let bundle = Bundle.essentialFeed
 
         assertLocalizedKeyAndValuesExist(in: bundle, table)
     }
