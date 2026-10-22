@@ -61,10 +61,10 @@ The minimum OS versions follow an N-2 policy: the current major release plus the
 
 ## Getting started
 
-Open the workspace to build and run the full app:
+Open the app project to build and run the full app. It pulls in `EssentialFeedKit` as a local package:
 
 ```
-open EssentialApp.xcworkspace
+open EssentialApp/EssentialApp.xcodeproj
 ```
 
 Select the `EssentialApp` scheme and run on a simulator or device.
@@ -96,7 +96,7 @@ xcodebuild test \
 # App composition tests (iOS Simulator), from the repository root
 cd ..
 xcodebuild test \
-  -workspace EssentialApp.xcworkspace \
+  -project EssentialApp/EssentialApp.xcodeproj \
   -scheme "CI_iOS" \
   -destination "platform=iOS Simulator,name=iPhone 18 Pro,OS=27.0" \
   -collect-test-diagnostics never
