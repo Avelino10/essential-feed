@@ -14,14 +14,10 @@ let package = Package(
         .library(name: "EssentialFeediOS", targets: ["EssentialFeediOS"]),
     ],
     targets: [
-        .target(
-            name: "EssentialFeed",
-            exclude: ["Info.plist"]
-        ),
+        .target(name: "EssentialFeed"),
         .target(
             name: "EssentialFeediOS",
-            dependencies: ["EssentialFeed"],
-            exclude: ["Info.plist"]
+            dependencies: ["EssentialFeed"]
         ),
         .target(
             name: "EssentialFeedTestHelpers",
@@ -30,23 +26,20 @@ let package = Package(
         ),
         .testTarget(
             name: "EssentialFeedTests",
-            dependencies: ["EssentialFeed", "EssentialFeedTestHelpers"],
-            exclude: ["Info.plist"]
+            dependencies: ["EssentialFeed", "EssentialFeedTestHelpers"]
         ),
         .testTarget(
             name: "EssentialFeedCacheIntegrationTests",
-            dependencies: ["EssentialFeed", "EssentialFeedTestHelpers"],
-            exclude: ["Info.plist"]
+            dependencies: ["EssentialFeed", "EssentialFeedTestHelpers"]
         ),
         .testTarget(
             name: "EssentialFeedAPIEndToEndTests",
-            dependencies: ["EssentialFeed", "EssentialFeedTestHelpers"],
-            exclude: ["Info.plist"]
+            dependencies: ["EssentialFeed", "EssentialFeedTestHelpers"]
         ),
         .testTarget(
             name: "EssentialFeediOSTests",
             dependencies: ["EssentialFeed", "EssentialFeediOS"],
-            exclude: ["Info.plist", "Feed UI/snapshots", "Image Comments UI/snapshots", "Shared UI/snapshots"]
+            exclude: ["Feed UI/snapshots", "Image Comments UI/snapshots", "Shared UI/snapshots"]
         ),
     ],
     swiftLanguageModes: [.v5]

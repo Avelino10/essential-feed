@@ -9,13 +9,9 @@ import Foundation
 
 extension Bundle {
     /// The bundle holding EssentialFeed's localized strings and Core Data model.
+    /// Tests reach it through `@testable import`, where a bare `Bundle.module`
+    /// would read as the test target's own bundle.
     static var essentialFeed: Bundle {
-        #if SWIFT_PACKAGE
         .module
-        #else
-        Bundle(for: BundleToken.self)
-        #endif
     }
 }
-
-private final class BundleToken {}
