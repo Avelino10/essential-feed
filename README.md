@@ -60,14 +60,21 @@ To work on the core framework in isolation, open `EssentialFeed.xcodeproj` direc
 Tests can be run from Xcode via **Product ▸ Test**, or from the command line using the same schemes as CI:
 
 ```bash
-# Core framework (macOS)
+# Core modules, platform-agnostic tests (macOS)
+cd EssentialFeedKit
 xcodebuild test \
-  -project EssentialFeed.xcodeproj \
-  -scheme "CI_macOS" \
+  -scheme "EssentialFeed" \
   -destination "platform=macOS" \
   -collect-test-diagnostics never
 
-# Full app (iOS Simulator)
+# All EssentialFeedKit tests, including the UI snapshots (iOS Simulator)
+xcodebuild test \
+  -scheme "EssentialFeedKit-Package" \
+  -destination "platform=iOS Simulator,name=iPhone 18 Pro,OS=27.0" \
+  -collect-test-diagnostics never
+
+# App composition tests (iOS Simulator), from the repository root
+cd ..
 xcodebuild test \
   -workspace EssentialApp.xcworkspace \
   -scheme "CI_iOS" \
@@ -81,7 +88,7 @@ Snapshot tests compare pixel-exact renders, so run them on **iPhone 18 Pro / iOS
 
 ## Continuous integration
 
-Builds and tests run on GitHub Actions (see `.github/workflows/ci.yml`), running the `CI_macOS` and `CI_iOS` schemes on every push and pull request to `master`.
+Builds and tests run on GitHub Actions (see `.github/workflows/ci.yml`), on every push and pull request to `master`: the `EssentialFeedKit` package tests on macOS and on the iOS Simulator, then the app tests through the `CI_iOS` scheme.
 
 Both jobs run on the `xcode-27` runner with Xcode 27.0, and the iOS job uses the iPhone 18 Pro / iOS 27.0 simulator. No tests are skipped.
 

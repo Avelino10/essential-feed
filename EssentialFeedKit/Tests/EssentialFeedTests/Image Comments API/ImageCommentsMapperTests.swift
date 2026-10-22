@@ -6,6 +6,7 @@
 //
 
 import EssentialFeed
+import EssentialFeedTestHelpers
 import XCTest
 
 class ImageCommentsMapperTests: XCTestCase {

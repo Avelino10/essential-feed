@@ -12,7 +12,7 @@ env:
 
 jobs:
   macos:
-    name: EssentialFeed (macOS)
+    name: EssentialFeedKit (macOS)
     runs-on: xcode-27
     steps:
       - uses: actions/checkout@v4
@@ -21,17 +21,17 @@ jobs:
         run: xcodebuild -version
 
       - name: Build and test
+        working-directory: EssentialFeedKit
         run: |
           xcodebuild test \
-            -project EssentialFeed.xcodeproj \
-            -scheme "CI_macOS" \
+            -scheme "EssentialFeed" \
             -destination "platform=macOS" \
             -collect-test-diagnostics never \
             CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO \
             ONLY_ACTIVE_ARCH=YES
 
   ios:
-    name: EssentialApp (iOS Simulator)
+    name: iOS Simulator
     runs-on: xcode-27
     steps:
       - uses: actions/checkout@v4
@@ -46,7 +46,17 @@ jobs:
               com.apple.CoreSimulator.SimDeviceType.iPhone-18-Pro \
               com.apple.CoreSimulator.SimRuntime.iOS-27-0
 
-      - name: Build and test
+      - name: Test EssentialFeedKit
+        working-directory: EssentialFeedKit
+        run: |
+          xcodebuild test \
+            -scheme "EssentialFeedKit-Package" \
+            -destination "platform=iOS Simulator,name=iPhone 18 Pro,OS=27.0" \
+            -collect-test-diagnostics never \
+            CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO \
+            ONLY_ACTIVE_ARCH=YES
+
+      - name: Test EssentialApp
         run: |
           xcodebuild test \
             -workspace EssentialApp.xcworkspace \

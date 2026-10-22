@@ -9,7 +9,7 @@ import CoreData
 
 public final class CoreDataFeedStore {
     private static let modelName = "FeedStore"
-    private static let model = NSManagedObjectModel.with(name: modelName, in: Bundle(for: CoreDataFeedStore.self))
+    private static let model = NSManagedObjectModel.with(name: modelName, in: .essentialFeed)
 
     private let container: NSPersistentContainer
     private let context: NSManagedObjectContext

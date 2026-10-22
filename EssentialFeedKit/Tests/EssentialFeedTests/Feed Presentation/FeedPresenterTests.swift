@@ -5,7 +5,8 @@
 //  Created by Avelino Rodrigues on 28/08/2021.
 //
 
-import EssentialFeed
+@testable import EssentialFeed
+import EssentialFeedTestHelpers
 import XCTest
 
 class FeedPresenterTests: XCTestCase {
@@ -25,7 +26,7 @@ class FeedPresenterTests: XCTestCase {
 
     private func localized(_ key: String, file: StaticString = #filePath, line: UInt = #line) -> String {
         let table = "Feed"
-        let bundle = Bundle(for: FeedPresenter.self)
+        let bundle = Bundle.essentialFeed
         let value = bundle.localizedString(forKey: key, value: nil, table: table)
 
         if value == key {

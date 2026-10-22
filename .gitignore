@@ -4,3 +4,6 @@ xcuserdata/
 
 # macOS Finder metadata
 .DS_Store
+
+# Swift Package Manager build output
+.build/
