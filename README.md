@@ -4,14 +4,30 @@ An iOS feed application built with a modular, test-driven architecture that sepa
 
 ## Project structure
 
-| Target | Description |
+`EssentialFeed` and `EssentialFeediOS` live in `EssentialFeedKit`, a local Swift package that the app project depends on:
+
+```
+EssentialFeedKit/
+├── Package.swift
+├── Sources/
+│   ├── EssentialFeed
+│   └── EssentialFeediOS
+└── Tests/
+    ├── EssentialFeedTests
+    ├── EssentialFeediOSTests
+    ├── EssentialFeedCacheIntegrationTests
+    ├── EssentialFeedAPIEndToEndTests
+    └── EssentialFeedTestHelpers    # helpers shared by the core test targets
+```
+
+| Module | Description |
 |---|---|
-| `EssentialFeed` | Platform-agnostic core framework: feed and image comments domain models, API loading/mapping, caching, and presentation logic. No UIKit dependency. |
+| `EssentialFeed` | Platform-agnostic core module: feed and image comments domain models, API loading/mapping, caching, and presentation logic. No UIKit dependency. |
 | `EssentialFeediOS` | UIKit-based UI layer (view controllers and views) for the feed and image comments features. |
 | `EssentialApp` | The composed iOS application — wires together `EssentialFeed` and `EssentialFeediOS`, including navigation, remote/local loader composition with fallback and caching, and app lifecycle. |
 | `Prototype` | Standalone UI prototype used for design exploration, independent of the production modules. |
 
-Within `EssentialFeed`, code is organized by feature and layer, e.g.:
+Within `EssentialFeed`, code is organized by feature and layer:
 
 ```
 EssentialFeed/
@@ -29,7 +45,7 @@ EssentialFeed/
 
 Test targets mirror this structure:
 
-- `EssentialFeedTests` — unit tests for the core framework
+- `EssentialFeedTests` — unit tests for the core module
 - `EssentialFeediOSTests` — unit tests for the UI layer (snapshot + behavior tests)
 - `EssentialFeedCacheIntegrationTests` — integration tests against real persistence
 - `EssentialFeedAPIEndToEndTests` — end-to-end tests against the live remote API
@@ -39,13 +55,13 @@ Test targets mirror this structure:
 
 - Xcode 27 (Swift 5 language mode)
 - iOS 18.0+
-- macOS 15.0+ (for the framework's macOS test target)
+- macOS 15.0+ (the core tests also run on macOS)
 
 The minimum OS versions follow an N-2 policy: the current major release plus the two before it.
 
 ## Getting started
 
-Open the workspace (not the standalone project) to build and run the full app:
+Open the workspace to build and run the full app:
 
 ```
 open EssentialApp.xcworkspace
@@ -53,7 +69,11 @@ open EssentialApp.xcworkspace
 
 Select the `EssentialApp` scheme and run on a simulator or device.
 
-To work on the core framework in isolation, open `EssentialFeed.xcodeproj` directly.
+To work on the core modules in isolation, open the package instead:
+
+```
+open EssentialFeedKit/Package.swift
+```
 
 ## Running tests
 
