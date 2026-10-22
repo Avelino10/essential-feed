@@ -59,7 +59,7 @@ jobs:
       - name: Test EssentialApp
         run: |
           xcodebuild test \
-            -workspace EssentialApp.xcworkspace \
+            -project EssentialApp/EssentialApp.xcodeproj \
             -scheme "CI_iOS" \
             -destination "platform=iOS Simulator,name=iPhone 18 Pro,OS=27.0" \
             -collect-test-diagnostics never \
