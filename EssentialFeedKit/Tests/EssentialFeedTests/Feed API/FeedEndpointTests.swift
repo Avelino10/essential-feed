@@ -7,30 +7,32 @@
 
 import EssentialFeed
 import EssentialFeedTestHelpers
-import XCTest
+import Foundation
+import Testing
 
-class FeedEndpointTests: XCTestCase {
-    func test_feed_endpointURL() {
+struct FeedEndpointTests {
+    @Test func `Feed endpoint URL`() {
         let baseURL = URL(string: "http://base-url.com")!
 
         let received = FeedEndpoint.get().url(baseURL: baseURL)
 
-        XCTAssertEqual(received.scheme, "http", "scheme")
-        XCTAssertEqual(received.host, "base-url.com", "host")
-        XCTAssertEqual(received.path, "/v1/feed", "path")
-        XCTAssertEqual(received.query, "limit=10", "query")
+        #expect(received.scheme == "http")
+        #expect(received.host == "base-url.com")
+        #expect(received.path == "/v1/feed")
+        #expect(received.query == "limit=10")
     }
 
-    func test_feed_endpointURLAfterGivenImage() {
+    @Test func `Feed endpoint URL after given image`() throws {
         let image = uniqueImage()
         let baseURL = URL(string: "http://base-url.com")!
 
         let received = FeedEndpoint.get(after: image).url(baseURL: baseURL)
 
-        XCTAssertEqual(received.scheme, "http", "scheme")
-        XCTAssertEqual(received.host, "base-url.com", "host")
-        XCTAssertEqual(received.path, "/v1/feed", "path")
-        XCTAssertEqual(received.query?.contains("limit=10"), true, "limit query param")
-        XCTAssertEqual(received.query?.contains("after_id=\(image.id)"), true, "after_id query param")
+        #expect(received.scheme == "http")
+        #expect(received.host == "base-url.com")
+        #expect(received.path == "/v1/feed")
+        let query = try #require(received.query)
+        #expect(query.contains("limit=10"))
+        #expect(query.contains("after_id=\(image.id)"))
     }
 }
