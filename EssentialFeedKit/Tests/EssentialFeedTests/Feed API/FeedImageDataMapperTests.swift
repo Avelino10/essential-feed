@@ -7,32 +7,30 @@
 
 import EssentialFeed
 import EssentialFeedTestHelpers
-import XCTest
+import Foundation
+import Testing
 
-class FeedImageDataMapperTests: XCTestCase {
-    func test_map_throwsErrorOnNon200HTTPResponse() throws {
-        let samples = [199, 201, 300, 400, 500]
-
-        try samples.forEach { code in
-            XCTAssertThrowsError(
-                try FeedImageDataMapper.map(anyData(), from: HTTPURLResponse(statusCode: code))
-            )
+struct FeedImageDataMapperTests {
+    @Test(arguments: [199, 201, 300, 400, 500])
+    func `Map throws error on non-200 HTTP response`(statusCode: Int) {
+        #expect(throws: FeedImageDataMapper.Error.invalidData) {
+            try FeedImageDataMapper.map(anyData(), from: HTTPURLResponse(statusCode: statusCode))
         }
     }
 
-    func test_map_deliversInvalidDataErrorOn200HTTPResponseWithEmptyData() {
+    @Test func `Map delivers invalid data error on 200 HTTP response with empty data`() {
         let emptyData = Data()
 
-        XCTAssertThrowsError(
+        #expect(throws: FeedImageDataMapper.Error.invalidData) {
             try FeedImageDataMapper.map(emptyData, from: HTTPURLResponse(statusCode: 200))
-        )
+        }
     }
 
-    func test_map_deliversNonEmptyReceivedDataOn200HTTPResponse() throws {
+    @Test func `Map delivers non-empty received data on 200 HTTP response`() throws {
         let nonEmptyData = anyData()
 
         let result = try FeedImageDataMapper.map(nonEmptyData, from: HTTPURLResponse(statusCode: 200))
 
-        XCTAssertEqual(result, nonEmptyData)
+        #expect(result == nonEmptyData)
     }
 }

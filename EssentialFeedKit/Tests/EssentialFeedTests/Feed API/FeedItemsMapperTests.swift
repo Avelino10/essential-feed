@@ -7,37 +7,36 @@
 
 import EssentialFeed
 import EssentialFeedTestHelpers
-import XCTest
+import Foundation
+import Testing
 
-class FeedItemsMapperTests: XCTestCase {
-    func test_map_throwsErrorOnNon200HTTPResponse() throws {
+struct FeedItemsMapperTests {
+    @Test(arguments: [199, 201, 300, 400, 500])
+    func `Map throws error on non-200 HTTP response`(statusCode: Int) {
         let json = makeItemsJSON([])
-        let samples = [199, 201, 300, 400, 500]
 
-        try samples.forEach { code in
-            XCTAssertThrowsError(
-                try FeedItemsMapper.map(json, from: HTTPURLResponse(statusCode: code))
-            )
+        #expect(throws: FeedItemsMapper.Error.invalidData) {
+            try FeedItemsMapper.map(json, from: HTTPURLResponse(statusCode: statusCode))
         }
     }
 
-    func test_map_throwsErrorOn200HTTPResponseWithInvalidJSON() {
+    @Test func `Map throws error on 200 HTTP response with invalid JSON`() {
         let invalidJSON = Data("invalidJSON".utf8)
 
-        XCTAssertThrowsError(
+        #expect(throws: FeedItemsMapper.Error.invalidData) {
             try FeedItemsMapper.map(invalidJSON, from: HTTPURLResponse(statusCode: 200))
-        )
+        }
     }
 
-    func test_map_deliversNoItemsOn200HTTPResponseWithEmptyJSONList() throws {
+    @Test func `Map delivers no items on 200 HTTP response with empty JSON list`() throws {
         let emptyListJSON = makeItemsJSON([])
 
         let result = try FeedItemsMapper.map(emptyListJSON, from: HTTPURLResponse(statusCode: 200))
 
-        XCTAssertEqual(result, [])
+        #expect(result == [])
     }
 
-    func test_map_deliversItemsOn200HTTPResponseWithJSONItems() throws {
+    @Test func `Map delivers items on 200 HTTP response with JSON items`() throws {
         let item1 = makeItem(id: UUID(), imageURL: URL(string: "https://a-url.com")!)
 
         let item2 = makeItem(id: UUID(), description: "a description", location: "a location", imageURL: URL(string: "https://another-url.com")!)
@@ -46,7 +45,7 @@ class FeedItemsMapperTests: XCTestCase {
 
         let result = try FeedItemsMapper.map(json, from: HTTPURLResponse(statusCode: 200))
 
-        XCTAssertEqual(result, [item1.model, item2.model])
+        #expect(result == [item1.model, item2.model])
     }
 
     // MARK: - Helpers
