@@ -5,34 +5,20 @@
 //  Created by Avelino Rodrigues on 28/08/2021.
 //
 
-@testable import EssentialFeed
+import EssentialFeed
 import EssentialFeedTestHelpers
-import XCTest
+import Testing
 
-class FeedPresenterTests: XCTestCase {
-    func test_title_isLocalized() {
-        XCTAssertEqual(FeedPresenter.title, localized("FEED_VIEW_TITLE"))
+struct FeedPresenterTests {
+    @Test func `Title is localized`() {
+        #expect(FeedPresenter.title == localized("FEED_VIEW_TITLE", table: "Feed"))
     }
 
-    func test_map_createsViewModel() {
+    @Test func `Map creates view model`() {
         let feed = uniqueImageFeed().models
 
         let viewModel = FeedPresenter.map(feed)
 
-        XCTAssertEqual(viewModel.feed, feed)
-    }
-
-    // MARK: - Helpers
-
-    private func localized(_ key: String, file: StaticString = #filePath, line: UInt = #line) -> String {
-        let table = "Feed"
-        let bundle = Bundle.essentialFeed
-        let value = bundle.localizedString(forKey: key, value: nil, table: table)
-
-        if value == key {
-            XCTFail("Missing localized string for key: \(key) in table: \(table)", file: file, line: line)
-        }
-
-        return value
+        #expect(viewModel.feed == feed)
     }
 }

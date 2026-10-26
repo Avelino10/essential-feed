@@ -5,16 +5,17 @@
 //  Created by Avelino Rodrigues on 03/12/2021.
 //
 
-@testable import EssentialFeed
+import EssentialFeed
 import EssentialFeedTestHelpers
-import XCTest
+import Foundation
+import Testing
 
-class ImageCommentsPresenterTests: XCTestCase {
-    func test_title_isLocalized() {
-        XCTAssertEqual(ImageCommentsPresenter.title, localized("IMAGE_COMMENTS_VIEW_TITLE"))
+struct ImageCommentsPresenterTests {
+    @Test func `Title is localized`() {
+        #expect(ImageCommentsPresenter.title == localized("IMAGE_COMMENTS_VIEW_TITLE", table: "ImageComments"))
     }
 
-    func test_map_createsViewModel() {
+    @Test func `Map creates view model`() {
         let now = Date()
         let calendar = Calendar(identifier: .gregorian)
         let locale = Locale(identifier: "en_US_POSIX")
@@ -39,7 +40,7 @@ class ImageCommentsPresenterTests: XCTestCase {
             locale: locale
         )
 
-        XCTAssertEqual(viewModel.comments, [
+        #expect(viewModel.comments == [
             ImageCommentViewModel(
                 message: "a message",
                 date: "5 minutes ago",
@@ -51,19 +52,5 @@ class ImageCommentsPresenterTests: XCTestCase {
                 username: "another username"
             ),
         ])
-    }
-
-    // MARK: - Helpers
-
-    private func localized(_ key: String, file: StaticString = #filePath, line: UInt = #line) -> String {
-        let table = "ImageComments"
-        let bundle = Bundle.essentialFeed
-        let value = bundle.localizedString(forKey: key, value: nil, table: table)
-
-        if value == key {
-            XCTFail("Missing localized string for key: \(key) in table: \(table)", file: file, line: line)
-        }
-
-        return value
     }
 }
