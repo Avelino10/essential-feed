@@ -7,79 +7,75 @@
 
 import EssentialFeed
 import EssentialFeedTestHelpers
-import XCTest
+import Foundation
+import Testing
 
-class CacheFeedUseCaseTests: XCTestCase {
-    func test_init_doesNotMessageStoreUponCreation() {
+@Suite(.trackingMemoryLeaks)
+struct CacheFeedUseCaseTests {
+    @Test func `Init does not message store upon creation`() {
         let (_, store) = makeSUT()
-        XCTAssertEqual(store.receivedMessages, [])
+
+        #expect(store.receivedMessages == [])
     }
 
-    func test_save_doesNotRequestCacheInsertionOnDeletionError() {
+    @Test func `Save does not request cache insertion on deletion error`() {
         let (sut, store) = makeSUT()
-        let deletionError = anyNSError()
-
-        store.completeDeletion(with: deletionError)
+        store.completeDeletion(with: anyNSError())
 
         try? sut.save(uniqueImageFeed().models)
 
-        XCTAssertEqual(store.receivedMessages, [.deleteCachedFeed])
+        #expect(store.receivedMessages == [.deleteCachedFeed])
     }
 
-    func test_save_requestsNewCacheInsetionWithTimestampOnSuccessfulDeletion() {
+    @Test func `Save requests new cache insertion with timestamp on successful deletion`() {
         let timestamp = Date()
         let (sut, store) = makeSUT(currentDate: { timestamp })
         let feed = uniqueImageFeed()
-
         store.completeDeletionSuccessfully()
 
         try? sut.save(feed.models)
-        XCTAssertEqual(store.receivedMessages, [.deleteCachedFeed, .insert(feed.local, timestamp)])
+
+        #expect(store.receivedMessages == [.deleteCachedFeed, .insert(feed.local, timestamp)])
     }
 
-    func test_save_failsOnDeletionError() {
+    @Test func `Save fails on deletion error`() {
         let (sut, store) = makeSUT()
         let deletionError = anyNSError()
-        expect(sut, toCompleteWithError: deletionError, when: {
-            store.completeDeletion(with: deletionError)
-        })
+        store.completeDeletion(with: deletionError)
+
+        #expect(throws: deletionError) {
+            try sut.save(uniqueImageFeed().models)
+        }
     }
 
-    func test_save_failsOnInsertionError() {
+    @Test func `Save fails on insertion error`() {
         let (sut, store) = makeSUT()
         let insertionError = anyNSError()
-        expect(sut, toCompleteWithError: insertionError, when: {
-            store.completeDeletionSuccessfully()
-            store.completeInsertion(with: insertionError)
-        })
+        store.completeDeletionSuccessfully()
+        store.completeInsertion(with: insertionError)
+
+        #expect(throws: insertionError) {
+            try sut.save(uniqueImageFeed().models)
+        }
     }
 
-    func test_save_succeedsOnSuccessfulCacheInsertion() {
+    @Test func `Save succeeds on successful cache insertion`() {
         let (sut, store) = makeSUT()
+        store.completeDeletionSuccessfully()
+        store.completeInsertionSuccessfully()
 
-        expect(sut, toCompleteWithError: nil, when: {
-            store.completeDeletionSuccessfully()
-            store.completeInsertionSuccessfully()
-        })
+        #expect(throws: Never.self) {
+            try sut.save(uniqueImageFeed().models)
+        }
     }
 
     // MARK: - Helpers
 
-    private func makeSUT(currentDate: @escaping () -> Date = Date.init, file: StaticString = #filePath, line: UInt = #line) -> (sut: LocalFeedLoader, store: FeedStoreSpy) {
+    private func makeSUT(currentDate: @escaping () -> Date = Date.init) -> (sut: LocalFeedLoader, store: FeedStoreSpy) {
         let store = FeedStoreSpy()
         let sut = LocalFeedLoader(store: store, currentDate: currentDate)
-        trackForMemoryLeaks(store, file: file, line: line)
-        trackForMemoryLeaks(sut, file: file, line: line)
+        trackForMemoryLeaks(store)
+        trackForMemoryLeaks(sut)
         return (sut, store)
-    }
-
-    private func expect(_ sut: LocalFeedLoader, toCompleteWithError expectedError: NSError?, when action: () -> Void, file: StaticString = #filePath, line: UInt = #line) {
-        action()
-
-        do {
-            try sut.save(uniqueImageFeed().models)
-        } catch {
-            XCTAssertEqual(error as NSError?, expectedError, file: file, line: line)
-        }
     }
 }
