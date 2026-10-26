@@ -8,105 +8,108 @@
 @testable import EssentialApp
 import EssentialFeed
 import EssentialFeediOS
-import XCTest
+import Testing
+import UIKit
 
-class FeedAcceptanceTests: XCTestCase {
-    func test_onLaunch_displaysRemoteFeedWhenCustomerHasConnectivity() {
-        let feed = launch(httpClient: .online(response), store: .empty)
+@MainActor
+struct FeedAcceptanceTests {
+    @Test func `On launch displays remote feed when customer has connectivity`() throws {
+        let feed = try launch(httpClient: .online(response), store: .empty)
 
-        XCTAssertEqual(feed.numberOfRenderedFeedImageViews(), 2)
-        XCTAssertEqual(feed.renderedFeedImageData(at: 0), makeImageData0().imagePixels)
-        XCTAssertEqual(feed.renderedFeedImageData(at: 1), makeImageData1().imagePixels)
-        XCTAssertTrue(feed.canLoadMoreFeed)
-
-        feed.simulateLoadMoreFeedAction()
-
-        XCTAssertEqual(feed.numberOfRenderedFeedImageViews(), 3)
-        XCTAssertEqual(feed.renderedFeedImageData(at: 0), makeImageData0().imagePixels)
-        XCTAssertEqual(feed.renderedFeedImageData(at: 1), makeImageData1().imagePixels)
-        XCTAssertEqual(feed.renderedFeedImageData(at: 2), makeImageData2().imagePixels)
-        XCTAssertTrue(feed.canLoadMoreFeed)
+        #expect(feed.numberOfRenderedFeedImageViews() == 2)
+        #expect(feed.renderedFeedImageData(at: 0) == makeImageData0().imagePixels)
+        #expect(feed.renderedFeedImageData(at: 1) == makeImageData1().imagePixels)
+        #expect(feed.canLoadMoreFeed)
 
         feed.simulateLoadMoreFeedAction()
 
-        XCTAssertEqual(feed.numberOfRenderedFeedImageViews(), 3)
-        XCTAssertEqual(feed.renderedFeedImageData(at: 0), makeImageData0().imagePixels)
-        XCTAssertEqual(feed.renderedFeedImageData(at: 1), makeImageData1().imagePixels)
-        XCTAssertEqual(feed.renderedFeedImageData(at: 2), makeImageData2().imagePixels)
-        XCTAssertFalse(feed.canLoadMoreFeed)
+        #expect(feed.numberOfRenderedFeedImageViews() == 3)
+        #expect(feed.renderedFeedImageData(at: 0) == makeImageData0().imagePixels)
+        #expect(feed.renderedFeedImageData(at: 1) == makeImageData1().imagePixels)
+        #expect(feed.renderedFeedImageData(at: 2) == makeImageData2().imagePixels)
+        #expect(feed.canLoadMoreFeed)
+
+        feed.simulateLoadMoreFeedAction()
+
+        #expect(feed.numberOfRenderedFeedImageViews() == 3)
+        #expect(feed.renderedFeedImageData(at: 0) == makeImageData0().imagePixels)
+        #expect(feed.renderedFeedImageData(at: 1) == makeImageData1().imagePixels)
+        #expect(feed.renderedFeedImageData(at: 2) == makeImageData2().imagePixels)
+        #expect(!feed.canLoadMoreFeed)
     }
 
-    func test_onLaunch_displaysCachedRemoteFeedWhenCustomerHasNoConnectivity() {
+    @Test func `On launch displays cached remote feed when customer has no connectivity`() throws {
         let sharedStore = InMemoryFeedStore.empty
 
-        let onlineFeed = launch(httpClient: .online(response), store: sharedStore)
+        let onlineFeed = try launch(httpClient: .online(response), store: sharedStore)
         onlineFeed.simulateFeedImageViewVisible(at: 0)
         onlineFeed.simulateFeedImageViewVisible(at: 1)
         onlineFeed.simulateLoadMoreFeedAction()
         onlineFeed.simulateFeedImageViewVisible(at: 2)
-        let offlineFeed = launch(httpClient: .offline, store: sharedStore)
+        let offlineFeed = try launch(httpClient: .offline, store: sharedStore)
 
-        XCTAssertEqual(offlineFeed.numberOfRenderedFeedImageViews(), 3)
-        XCTAssertEqual(offlineFeed.renderedFeedImageData(at: 0), makeImageData0().imagePixels)
-        XCTAssertEqual(offlineFeed.renderedFeedImageData(at: 1), makeImageData1().imagePixels)
-        XCTAssertEqual(offlineFeed.renderedFeedImageData(at: 2), makeImageData2().imagePixels)
+        #expect(offlineFeed.numberOfRenderedFeedImageViews() == 3)
+        #expect(offlineFeed.renderedFeedImageData(at: 0) == makeImageData0().imagePixels)
+        #expect(offlineFeed.renderedFeedImageData(at: 1) == makeImageData1().imagePixels)
+        #expect(offlineFeed.renderedFeedImageData(at: 2) == makeImageData2().imagePixels)
     }
 
-    func test_onLaunch_displaysEmptyFeedWhenCustomerHasNoConnectivityAndNoCache() {
-        let feed = launch(httpClient: .offline, store: .empty)
+    @Test func `On launch displays empty feed when customer has no connectivity and no cache`() throws {
+        let feed = try launch(httpClient: .offline, store: .empty)
 
-        XCTAssertEqual(feed.numberOfRenderedFeedImageViews(), 0)
+        #expect(feed.numberOfRenderedFeedImageViews() == 0)
     }
 
-    func test_onEnteringBackground_deletesExpiredFeedCache() {
+    @Test func `On entering background deletes expired feed cache`() throws {
         let store = InMemoryFeedStore.withExpiredFeedCache
 
-        enterBackground(with: store)
+        try enterBackground(with: store)
 
-        XCTAssertNil(store.feedCache, "Expected to delete expired cache")
+        #expect(store.feedCache == nil, "Expected to delete expired cache")
     }
 
-    func test_onEnteringBackground_keepsNonExpiredFeedCache() {
+    @Test func `On entering background keeps non-expired feed cache`() throws {
         let store = InMemoryFeedStore.withNonExpiredFeedCache
 
-        enterBackground(with: store)
+        try enterBackground(with: store)
 
-        XCTAssertNotNil(store.feedCache, "Expected to keep non-expired cache")
+        #expect(store.feedCache != nil, "Expected to keep non-expired cache")
     }
 
-    func test_onFeedImageSelection_displaysComments() {
-        let comments = showCommentsForFirstImage()
+    @Test func `On feed image selection displays comments`() throws {
+        let comments = try showCommentsForFirstImage()
 
-        XCTAssertEqual(comments.numberOfRenderedComments(), 1)
-        XCTAssertEqual(comments.commentMessage(at: 0), makeCommentMessage())
+        #expect(comments.numberOfRenderedComments() == 1)
+        #expect(comments.commentMessage(at: 0) == makeCommentMessage())
     }
 
     // MARK: - Helpers
 
-    private func launch(httpClient: HTTPClientStub = .offline, store: InMemoryFeedStore = .empty) -> ListViewController {
+    private func launch(httpClient: HTTPClientStub = .offline, store: InMemoryFeedStore = .empty) throws -> ListViewController {
         let sut = SceneDelegate(httpClient: httpClient, store: store, scheduler: .immediateOnMainQueue)
         sut.window = UIWindow(frame: CGRect(x: 0, y: 0, width: 1, height: 1))
         sut.configureWindow()
 
-        let nav = sut.window?.rootViewController as? UINavigationController
-        let feed = nav?.topViewController as! ListViewController
+        let nav = try #require(sut.window?.rootViewController as? UINavigationController)
+        let feed = try #require(nav.topViewController as? ListViewController)
         feed.simulateAppearance()
         return feed
     }
 
-    private func enterBackground(with store: InMemoryFeedStore) {
+    private func enterBackground(with store: InMemoryFeedStore) throws {
         let sut = SceneDelegate(httpClient: HTTPClientStub.offline, store: store, scheduler: .immediateOnMainQueue)
-        sut.sceneWillResignActive(UIApplication.shared.connectedScenes.first!)
+        let scene = try #require(UIApplication.shared.connectedScenes.first)
+        sut.sceneWillResignActive(scene)
     }
 
-    private func showCommentsForFirstImage() -> ListViewController {
-        let feed = launch(httpClient: .online(response), store: .empty)
+    private func showCommentsForFirstImage() throws -> ListViewController {
+        let feed = try launch(httpClient: .online(response), store: .empty)
 
         feed.simulateTapOnFeedImage(at: 0)
         RunLoop.current.run(until: Date())
 
-        let nav = feed.navigationController
-        let comments = nav?.topViewController as! ListViewController
+        let nav = try #require(feed.navigationController)
+        let comments = try #require(nav.topViewController as? ListViewController)
         comments.simulateAppearance()
         return comments
     }
