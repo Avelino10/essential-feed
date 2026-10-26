@@ -6,12 +6,14 @@
 //
 
 @testable import EssentialFeed
-import XCTest
+import Foundation
+import Testing
 
-class SharedLocalizationTests: XCTestCase {
-    func test_localizedStrings_haveKeysAndValuesForAllSuportedLocalizations() {
+struct SharedLocalizationTests {
+    @Test func `Localized strings have keys and values for all supported localizations`() {
         let table = "Shared"
         let bundle = Bundle.essentialFeed
-        assertLocalizedKeyAndValuesExist(in: bundle, table)
+
+        expectLocalizedKeysAndValuesExist(in: bundle, table)
     }
 }

@@ -6,12 +6,14 @@
 //
 
 @testable import EssentialFeed
-import XCTest
+import Foundation
+import Testing
 
-class ImageCommentsLocalizationTests: XCTestCase {
-    func test_localizedStrings_haveKeysAndValuesForAllSuportedLocalizations() {
+struct ImageCommentsLocalizationTests {
+    @Test func `Localized strings have keys and values for all supported localizations`() {
         let table = "ImageComments"
         let bundle = Bundle.essentialFeed
-        assertLocalizedKeyAndValuesExist(in: bundle, table)
+
+        expectLocalizedKeysAndValuesExist(in: bundle, table)
     }
 }

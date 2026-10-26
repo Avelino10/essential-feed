@@ -7,15 +7,15 @@
 
 import EssentialFeed
 import EssentialFeedTestHelpers
-import XCTest
+import Testing
 
-class FeedImagePresenterTests: XCTestCase {
-    func test_map_createsViewModel() {
+struct FeedImagePresenterTests {
+    @Test func `Map creates view model`() {
         let image = uniqueImage()
 
         let viewModel = FeedImagePresenter.map(image)
 
-        XCTAssertEqual(viewModel.description, image.description)
-        XCTAssertEqual(viewModel.location, image.location)
+        #expect(viewModel.description == image.description)
+        #expect(viewModel.location == image.location)
     }
 }

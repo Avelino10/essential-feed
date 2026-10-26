@@ -5,19 +5,31 @@
 //  Created by Avelino Rodrigues on 02/12/2021.
 //
 
-import XCTest
+@testable import EssentialFeed
+import Foundation
+import Testing
 
-func assertLocalizedKeyAndValuesExist(in presentationBundle: Bundle, _ table: String, file: StaticString = #filePath, line: UInt = #line) {
-    let localizationBundles = allLocalizationBundles(in: presentationBundle, file: file, line: line)
-    let localizedStringKeys = allLocalizedStringKeys(in: localizationBundles, table: table, file: file, line: line)
+func localized(_ key: String, table: String) -> String {
+    let value = Bundle.essentialFeed.localizedString(forKey: key, value: nil, table: table)
 
-    localizationBundles.forEach { bundle, localization in
-        localizedStringKeys.forEach { key in
+    if value == key {
+        Issue.record("Missing localized string for key: \(key) in table: \(table)")
+    }
+
+    return value
+}
+
+func expectLocalizedKeysAndValuesExist(in presentationBundle: Bundle, _ table: String) {
+    let localizationBundles = allLocalizationBundles(in: presentationBundle)
+    let localizedStringKeys = allLocalizedStringKeys(in: localizationBundles, table: table)
+
+    for (bundle, localization) in localizationBundles {
+        for key in localizedStringKeys {
             let language = Locale.current.localizedString(forLanguageCode: localization) ?? ""
             let localizedString = bundle.localizedString(forKey: key, value: nil, table: table)
 
             if localizedString == key {
-                XCTFail("Missing \(language) (\(localization)) localized string for key: '\(key)' in table: '\(table)'", file: file, line: line)
+                Issue.record("Missing \(language) (\(localization)) localized string for key: '\(key)' in table: '\(table)'")
             }
         }
     }
@@ -25,10 +37,10 @@ func assertLocalizedKeyAndValuesExist(in presentationBundle: Bundle, _ table: St
 
 private typealias LocalizedBundles = (bundle: Bundle, localization: String)
 
-private func allLocalizationBundles(in bundle: Bundle, file: StaticString = #filePath, line: UInt = #line) -> [LocalizedBundles] {
+private func allLocalizationBundles(in bundle: Bundle) -> [LocalizedBundles] {
     return bundle.localizations.compactMap { localization in
         guard let path = bundle.path(forResource: localization, ofType: "lproj"), let localizedBundle = Bundle(path: path) else {
-            XCTFail("Couldn't find bundle for localization: \(localization)", file: file, line: line)
+            Issue.record("Couldn't find bundle for localization: \(localization)")
             return nil
         }
 
@@ -36,13 +48,13 @@ private func allLocalizationBundles(in bundle: Bundle, file: StaticString = #fil
     }
 }
 
-private func allLocalizedStringKeys(in bundles: [LocalizedBundles], table: String, file: StaticString = #filePath, line: UInt = #line) -> Set<String> {
+private func allLocalizedStringKeys(in bundles: [LocalizedBundles], table: String) -> Set<String> {
     return bundles.reduce([]) { acc, current in
         guard let path = current.bundle.path(forResource: table, ofType: "strings"),
               let strings = NSDictionary(contentsOfFile: path),
               let keys = strings.allKeys as? [String]
         else {
-            XCTFail("Couldn't load localized strings for localization: \(current.localization)", file: file, line: line)
+            Issue.record("Couldn't load localized strings for localization: \(current.localization)")
             return acc
         }
 

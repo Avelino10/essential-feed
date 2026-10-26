@@ -5,61 +5,62 @@
 //  Created by Avelino Rodrigues on 29/11/2021.
 //
 
-@testable import EssentialFeed
+import EssentialFeed
 import EssentialFeedTestHelpers
-import XCTest
+import Testing
 
-class LoadResourcePresenterTests: XCTestCase {
-    func test_init_doesNotDeliverMessages() {
+@Suite(.trackingMemoryLeaks)
+struct LoadResourcePresenterTests {
+    @Test func `Init does not deliver messages`() {
         let (_, view) = makeSUT()
 
-        XCTAssertTrue(view.messages.isEmpty, "Expected no view messages")
+        #expect(view.messages.isEmpty, "Expected no view messages")
     }
 
-    func test_didStartLoading_displaysNoErrorMessageAndStartsLoading() {
+    @Test func `Did start loading displays no error message and starts loading`() {
         let (sut, view) = makeSUT()
 
         sut.didStartLoading()
 
-        XCTAssertEqual(view.messages, [
+        #expect(view.messages == [
             .display(errorMessage: .none),
             .display(isLoading: true),
         ])
     }
 
-    func test_didFinishLoadingResource_displaysResourceAndStopsLoading() {
+    @Test func `Did finish loading resource displays resource and stops loading`() {
         let (sut, view) = makeSUT(mapper: { resource in
             resource + " view model"
         })
 
         sut.didFinishLoading(with: "resource")
 
-        XCTAssertEqual(view.messages, [
+        #expect(view.messages == [
             .display(resourceViewModel: "resource view model"),
             .display(isLoading: false),
         ])
     }
 
-    func test_didFinishLoadingWithMapperError_displaysLocalizedErrorMessageAndStopsLoading() {
+    @Test func `Did finish loading with mapper error displays localized error message and stops loading`() {
         let (sut, view) = makeSUT(mapper: { _ in
             throw anyNSError()
         })
 
         sut.didFinishLoading(with: "resource")
 
-        XCTAssertEqual(view.messages, [
-            .display(errorMessage: localized("GENERIC_CONNECTION_ERROR")),
+        #expect(view.messages == [
+            .display(errorMessage: localized("GENERIC_CONNECTION_ERROR", table: "Shared")),
             .display(isLoading: false),
         ])
     }
 
-    func test_didFinishLoadingWithError_displaysLocalizedErrorMessageAndStopsLoading() {
+    @Test func `Did finish loading with error displays localized error message and stops loading`() {
         let (sut, view) = makeSUT()
 
         sut.didFinishLoading(with: anyNSError())
 
-        XCTAssertEqual(view.messages, [
-            .display(errorMessage: localized("GENERIC_CONNECTION_ERROR")),
+        #expect(view.messages == [
+            .display(errorMessage: localized("GENERIC_CONNECTION_ERROR", table: "Shared")),
             .display(isLoading: false),
         ])
     }
@@ -68,30 +69,14 @@ class LoadResourcePresenterTests: XCTestCase {
 
     private typealias SUT = LoadResourcePresenter<String, ViewSpy>
 
-    private func makeSUT(
-        mapper: @escaping SUT.Mapper = { _ in "any" },
-        file: StaticString = #filePath,
-        line: UInt = #line
-    ) -> (sut: SUT, view: ViewSpy) {
+    private func makeSUT(mapper: @escaping SUT.Mapper = { _ in "any" }) -> (sut: SUT, view: ViewSpy) {
         let view = ViewSpy()
         let sut = SUT(resourceView: view, loadingView: view, errorView: view, mapper: mapper)
 
-        trackForMemoryLeaks(view, file: file, line: line)
-        trackForMemoryLeaks(sut, file: file, line: line)
+        trackForMemoryLeaks(view)
+        trackForMemoryLeaks(sut)
 
         return (sut, view)
-    }
-
-    private func localized(_ key: String, file: StaticString = #filePath, line: UInt = #line) -> String {
-        let table = "Shared"
-        let bundle = Bundle.essentialFeed
-        let value = bundle.localizedString(forKey: key, value: nil, table: table)
-
-        if value == key {
-            XCTFail("Missing localized string for key: \(key) in table: \(table)", file: file, line: line)
-        }
-
-        return value
     }
 
     private class ViewSpy: ResourceView, ResourceLoadingView, ResourceErrorView {
