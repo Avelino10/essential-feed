@@ -7,81 +7,83 @@
 
 import EssentialFeed
 import EssentialFeedTestHelpers
-import XCTest
+import Foundation
+import Testing
 
-class CoreDataFeedStoreTests: XCTestCase, FeedStoreSpecs {
-    func test_retrieve_deliversEmptyOnEmptyCache() {
-        let sut = makeSUT()
+@Suite(.trackingMemoryLeaks)
+struct CoreDataFeedStoreTests {
+    @Test func `Retrieve delivers empty on empty cache`() throws {
+        let sut = try makeSUT()
 
-        assertThatRetrieveDeliversEmptyOnEmptyCache(on: sut)
+        try assertThatRetrieveDeliversEmptyOnEmptyCache(on: sut)
     }
 
-    func test_retrieve_hasNoSideEffectsOnEmptyCache() {
-        let sut = makeSUT()
+    @Test func `Retrieve has no side effects on empty cache`() throws {
+        let sut = try makeSUT()
 
-        assertThatRetrieveHasNoSideEffectsOnEmptyCache(on: sut)
+        try assertThatRetrieveHasNoSideEffectsOnEmptyCache(on: sut)
     }
 
-    func test_retrieve_deliversFoundValuesOnNonEmptyCache() {
-        let sut = makeSUT()
+    @Test func `Retrieve delivers found values on non-empty cache`() throws {
+        let sut = try makeSUT()
 
-        assertThatRetrieveDeliversFoundValuesOnNonEmptyCache(on: sut)
+        try assertThatRetrieveDeliversFoundValuesOnNonEmptyCache(on: sut)
     }
 
-    func test_retrieve_hasNoSideEffectsOnNonEmptyCache() {
-        let sut = makeSUT()
+    @Test func `Retrieve has no side effects on non-empty cache`() throws {
+        let sut = try makeSUT()
 
-        assertThatRetrieveHasNoSideEffectsOnNonEmptyCache(on: sut)
+        try assertThatRetrieveHasNoSideEffectsOnNonEmptyCache(on: sut)
     }
 
-    func test_insert_deliversNoErrorOnEmptyCache() {
-        let sut = makeSUT()
+    @Test func `Insert delivers no error on empty cache`() throws {
+        let sut = try makeSUT()
 
         assertThatInsertDeliversNoErrorOnEmptyCache(on: sut)
     }
 
-    func test_insert_deliversNoErrorOnNonEmptyCache() {
-        let sut = makeSUT()
+    @Test func `Insert delivers no error on non-empty cache`() throws {
+        let sut = try makeSUT()
 
-        assertThatInsertDeliversNoErrorOnNonEmptyCache(on: sut)
+        try assertThatInsertDeliversNoErrorOnNonEmptyCache(on: sut)
     }
 
-    func test_insert_overridesPreviouslyInsertedCacheValues() {
-        let sut = makeSUT()
+    @Test func `Insert overrides previously inserted cache values`() throws {
+        let sut = try makeSUT()
 
-        assertThatInsertOverridesPreviouslyInsertedCacheValues(on: sut)
+        try assertThatInsertOverridesPreviouslyInsertedCacheValues(on: sut)
     }
 
-    func test_delete_deliversNoErrorOnEmptyCache() {
-        let sut = makeSUT()
+    @Test func `Delete delivers no error on empty cache`() throws {
+        let sut = try makeSUT()
 
         assertThatDeleteDeliversNoErrorOnEmptyCache(on: sut)
     }
 
-    func test_delete_hasNoSideEffectsOnEmptyCache() {
-        let sut = makeSUT()
+    @Test func `Delete has no side effects on empty cache`() throws {
+        let sut = try makeSUT()
 
-        assertThatDeleteHasNoSideEffectsOnEmptyCache(on: sut)
+        try assertThatDeleteHasNoSideEffectsOnEmptyCache(on: sut)
     }
 
-    func test_delete_deliversNoErrorOnNonEmptyCache() {
-        let sut = makeSUT()
+    @Test func `Delete delivers no error on non-empty cache`() throws {
+        let sut = try makeSUT()
 
-        assertThatInsertDeliversNoErrorOnNonEmptyCache(on: sut)
+        try assertThatDeleteDeliversNoErrorOnNonEmptyCache(on: sut)
     }
 
-    func test_delete_emptiesPreviouslyInsertedCache() {
-        let sut = makeSUT()
+    @Test func `Delete empties previously inserted cache`() throws {
+        let sut = try makeSUT()
 
-        assertThatDeleteEmptiesPreviouslyInsertedCache(on: sut)
+        try assertThatDeleteEmptiesPreviouslyInsertedCache(on: sut)
     }
 
     // MARK: - Helpers
 
-    private func makeSUT(file: StaticString = #filePath, line: UInt = #line) -> FeedStore {
+    private func makeSUT() throws -> FeedStore {
         let storeURL = URL(fileURLWithPath: "/dev/null")
-        let sut = try! CoreDataFeedStore(storeURL: storeURL)
-        trackForMemoryLeaks(sut, file: file, line: line)
+        let sut = try CoreDataFeedStore(storeURL: storeURL)
+        trackForMemoryLeaks(sut)
         return sut
     }
 }

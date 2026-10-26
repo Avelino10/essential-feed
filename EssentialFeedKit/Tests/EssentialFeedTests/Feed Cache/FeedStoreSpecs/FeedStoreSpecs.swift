@@ -5,37 +5,102 @@
 //  Created by Avelino Rodrigues on 31/07/2021.
 //
 
+import EssentialFeed
+import EssentialFeedTestHelpers
 import Foundation
+import Testing
 
-protocol FeedStoreSpecs {
-    func test_retrieve_deliversEmptyOnEmptyCache()
-    func test_retrieve_hasNoSideEffectsOnEmptyCache()
-    func test_retrieve_deliversFoundValuesOnNonEmptyCache()
-    func test_retrieve_hasNoSideEffectsOnNonEmptyCache()
+// The behavior every `FeedStore` implementation must have.
+// Each store's test suite calls every spec below with a fresh, empty store.
 
-    func test_insert_deliversNoErrorOnEmptyCache()
-    func test_insert_deliversNoErrorOnNonEmptyCache()
-    func test_insert_overridesPreviouslyInsertedCacheValues()
-
-    func test_delete_deliversNoErrorOnEmptyCache()
-    func test_delete_hasNoSideEffectsOnEmptyCache()
-    func test_delete_deliversNoErrorOnNonEmptyCache()
-    func test_delete_emptiesPreviouslyInsertedCache()
+func assertThatRetrieveDeliversEmptyOnEmptyCache(on sut: FeedStore) throws {
+    try expect(sut, toRetrieve: nil)
 }
 
-protocol FailableRetrieveFeedStoreSpecs: FeedStoreSpecs {
-    func test_retrieve_deliversFailureOnRetrievalError()
-    func test_retrieve_hasNoSideEffectsOnFailure()
+func assertThatRetrieveHasNoSideEffectsOnEmptyCache(on sut: FeedStore) throws {
+    try expect(sut, toRetrieveTwice: nil)
 }
 
-protocol FailableInsertFeedStoreSpecs: FeedStoreSpecs {
-    func test_insert_deliversErrorOnInsertionError()
-    func test_insert_hasNoSideEffectsOnInsertionError()
+func assertThatRetrieveDeliversFoundValuesOnNonEmptyCache(on sut: FeedStore) throws {
+    let feed = uniqueImageFeed().local
+    let timestamp = Date()
+
+    try sut.insert(feed, timestamp: timestamp)
+
+    try expect(sut, toRetrieve: (feed, timestamp))
 }
 
-protocol FailableDeleteFeedStoreSpecs: FeedStoreSpecs {
-    func test_delete_deliversErrorOnDeletionError()
-    func test_delete_hasNoSideEffectsOnDeletionError()
+func assertThatRetrieveHasNoSideEffectsOnNonEmptyCache(on sut: FeedStore) throws {
+    let feed = uniqueImageFeed().local
+    let timestamp = Date()
+
+    try sut.insert(feed, timestamp: timestamp)
+
+    try expect(sut, toRetrieveTwice: (feed, timestamp))
 }
 
-typealias FailableFeedStore = FailableRetrieveFeedStoreSpecs & FailableInsertFeedStoreSpecs & FailableDeleteFeedStoreSpecs
+func assertThatInsertDeliversNoErrorOnEmptyCache(on sut: FeedStore) {
+    #expect(throws: Never.self, "Expected to insert cache successfully") {
+        try sut.insert(uniqueImageFeed().local, timestamp: Date())
+    }
+}
+
+func assertThatInsertDeliversNoErrorOnNonEmptyCache(on sut: FeedStore) throws {
+    try sut.insert(uniqueImageFeed().local, timestamp: Date())
+
+    #expect(throws: Never.self, "Expected to override cache successfully") {
+        try sut.insert(uniqueImageFeed().local, timestamp: Date())
+    }
+}
+
+func assertThatInsertOverridesPreviouslyInsertedCacheValues(on sut: FeedStore) throws {
+    try sut.insert(uniqueImageFeed().local, timestamp: Date())
+
+    let latestFeed = uniqueImageFeed().local
+    let latestTimestamp = Date()
+    try sut.insert(latestFeed, timestamp: latestTimestamp)
+
+    try expect(sut, toRetrieve: (latestFeed, latestTimestamp))
+}
+
+func assertThatDeleteDeliversNoErrorOnEmptyCache(on sut: FeedStore) {
+    #expect(throws: Never.self, "Expected empty cache deletion to succeed") {
+        try sut.deleteCachedFeed()
+    }
+}
+
+func assertThatDeleteHasNoSideEffectsOnEmptyCache(on sut: FeedStore) throws {
+    try sut.deleteCachedFeed()
+
+    try expect(sut, toRetrieve: nil)
+}
+
+func assertThatDeleteDeliversNoErrorOnNonEmptyCache(on sut: FeedStore) throws {
+    try sut.insert(uniqueImageFeed().local, timestamp: Date())
+
+    #expect(throws: Never.self, "Expected non-empty cache deletion to succeed") {
+        try sut.deleteCachedFeed()
+    }
+}
+
+func assertThatDeleteEmptiesPreviouslyInsertedCache(on sut: FeedStore) throws {
+    try sut.insert(uniqueImageFeed().local, timestamp: Date())
+
+    try sut.deleteCachedFeed()
+
+    try expect(sut, toRetrieve: nil)
+}
+
+// MARK: - Helpers
+
+func expect(_ sut: FeedStore, toRetrieveTwice expectedCache: CachedFeed?) throws {
+    try expect(sut, toRetrieve: expectedCache)
+    try expect(sut, toRetrieve: expectedCache)
+}
+
+func expect(_ sut: FeedStore, toRetrieve expectedCache: CachedFeed?) throws {
+    let retrievedCache = try sut.retrieve()
+
+    #expect(retrievedCache?.feed == expectedCache?.feed)
+    #expect(retrievedCache?.timestamp == expectedCache?.timestamp)
+}
