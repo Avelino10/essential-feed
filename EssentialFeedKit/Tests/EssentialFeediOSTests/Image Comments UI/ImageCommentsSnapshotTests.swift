@@ -7,17 +7,19 @@
 
 @testable import EssentialFeed
 import EssentialFeediOS
-import XCTest
+import Testing
+import UIKit
 
-class ImageCommentsSnapshotTests: XCTestCase {
-    func test_listWithComments() {
+@MainActor
+struct ImageCommentsSnapshotTests {
+    @Test func `List with comments`() {
         let sut = makeSUT()
 
         sut.display(comments())
 
-        assert(snapshot: sut.snapshot(for: .iPhone(style: .light)), named: "IMAGE_COMMENTS_light")
-        assert(snapshot: sut.snapshot(for: .iPhone(style: .dark)), named: "IMAGE_COMMENTS_dark")
-        assert(snapshot: sut.snapshot(for: .iPhone(style: .light, contentSize: .extraExtraExtraLarge)), named: "IMAGE_COMMENTS_light_extraExtraExtraLarge")
+        expect(snapshot: sut.snapshot(for: .iPhone(style: .light)), named: "IMAGE_COMMENTS_light")
+        expect(snapshot: sut.snapshot(for: .iPhone(style: .dark)), named: "IMAGE_COMMENTS_dark")
+        expect(snapshot: sut.snapshot(for: .iPhone(style: .light, contentSize: .extraExtraExtraLarge)), named: "IMAGE_COMMENTS_light_extraExtraExtraLarge")
     }
 
     // MARK: - Helpers
