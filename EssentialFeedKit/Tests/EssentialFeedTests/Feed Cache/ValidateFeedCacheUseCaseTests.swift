@@ -7,154 +7,147 @@
 
 import EssentialFeed
 import EssentialFeedTestHelpers
-import XCTest
+import Foundation
+import Testing
 
-class ValidateFeedCacheUseCaseTests: XCTestCase {
-    func test_init_doesNotMessageStoreUponCreation() {
+@Suite(.trackingMemoryLeaks)
+struct ValidateFeedCacheUseCaseTests {
+    @Test func `Init does not message store upon creation`() {
         let (_, store) = makeSUT()
-        XCTAssertEqual(store.receivedMessages, [])
+
+        #expect(store.receivedMessages == [])
     }
 
-    func test_validateCache_deletesCacheOnRetrievalError() {
+    @Test func `Validate cache deletes cache on retrieval error`() {
         let (sut, store) = makeSUT()
-
         store.completeRetrieval(with: anyNSError())
 
         try? sut.validateCache()
 
-        XCTAssertEqual(store.receivedMessages, [.retrieve, .deleteCachedFeed])
+        #expect(store.receivedMessages == [.retrieve, .deleteCachedFeed])
     }
 
-    func test_validateCache_doesNotDeleteCacheOnEmptyCache() {
+    @Test func `Validate cache does not delete cache on empty cache`() {
         let (sut, store) = makeSUT()
-
-        try? sut.validateCache()
         store.completeRetrievalWithEmptyCache()
 
-        XCTAssertEqual(store.receivedMessages, [.retrieve])
+        try? sut.validateCache()
+
+        #expect(store.receivedMessages == [.retrieve])
     }
 
-    func test_validateCache_doesNotDeleteNonExpiredCache() {
+    @Test func `Validate cache does not delete non-expired cache`() {
         let feed = uniqueImageFeed()
         let fixedCurrentDate = Date()
         let nonExpiredTimestamp = fixedCurrentDate.minusFeedCacheMaxAge().adding(seconds: 1)
         let (sut, store) = makeSUT(currentDate: { fixedCurrentDate })
-
         store.completeRetrieval(with: feed.local, timestamp: nonExpiredTimestamp)
 
         try? sut.validateCache()
 
-        XCTAssertEqual(store.receivedMessages, [.retrieve])
+        #expect(store.receivedMessages == [.retrieve])
     }
 
-    func test_validateCache_deletesCacheOnExpiration() {
+    @Test func `Validate cache deletes cache on expiration`() {
         let feed = uniqueImageFeed()
         let fixedCurrentDate = Date()
         let expirationTimestamp = fixedCurrentDate.minusFeedCacheMaxAge()
         let (sut, store) = makeSUT(currentDate: { fixedCurrentDate })
-
         store.completeRetrieval(with: feed.local, timestamp: expirationTimestamp)
 
         try? sut.validateCache()
 
-        XCTAssertEqual(store.receivedMessages, [.retrieve, .deleteCachedFeed])
+        #expect(store.receivedMessages == [.retrieve, .deleteCachedFeed])
     }
 
-    func test_validateCache_deletesExpiredCache() {
+    @Test func `Validate cache deletes expired cache`() {
         let feed = uniqueImageFeed()
         let fixedCurrentDate = Date()
         let expiredTimestamp = fixedCurrentDate.minusFeedCacheMaxAge().adding(seconds: -1)
         let (sut, store) = makeSUT(currentDate: { fixedCurrentDate })
-
         store.completeRetrieval(with: feed.local, timestamp: expiredTimestamp)
 
         try? sut.validateCache()
 
-        XCTAssertEqual(store.receivedMessages, [.retrieve, .deleteCachedFeed])
+        #expect(store.receivedMessages == [.retrieve, .deleteCachedFeed])
     }
 
-    func test_validateCache_failsOnDeletionErrorOfFailedRetrieval() {
+    @Test func `Validate cache fails on deletion error of failed retrieval`() {
         let (sut, store) = makeSUT()
         let deletionError = anyNSError()
+        store.completeRetrieval(with: anyNSError())
+        store.completeDeletion(with: deletionError)
 
-        expect(sut, toCompleteWith: .failure(deletionError), when: {
-            store.completeRetrieval(with: anyNSError())
-            store.completeDeletion(with: deletionError)
-        })
+        #expect(throws: deletionError) {
+            try sut.validateCache()
+        }
     }
 
-    func test_validateCache_succeedsOnSuccessfulDeletionOfFailedRetrieval() {
+    @Test func `Validate cache succeeds on successful deletion of failed retrieval`() {
         let (sut, store) = makeSUT()
+        store.completeRetrieval(with: anyNSError())
+        store.completeDeletionSuccessfully()
 
-        expect(sut, toCompleteWith: .success(()), when: {
-            store.completeRetrieval(with: anyNSError())
-            store.completeDeletionSuccessfully()
-        })
+        #expect(throws: Never.self) {
+            try sut.validateCache()
+        }
     }
 
-    func test_validateCache_succeedsOnEmptyCache() {
+    @Test func `Validate cache succeeds on empty cache`() {
         let (sut, store) = makeSUT()
+        store.completeRetrievalWithEmptyCache()
 
-        expect(sut, toCompleteWith: .success(()), when: {
-            store.completeRetrievalWithEmptyCache()
-        })
+        #expect(throws: Never.self) {
+            try sut.validateCache()
+        }
     }
 
-    func test_validateCache_succeedsOnNonExpiredCache() {
+    @Test func `Validate cache succeeds on non-expired cache`() {
         let feed = uniqueImageFeed()
         let fixedCurrentDate = Date()
         let nonExpiredTimestamp = fixedCurrentDate.minusFeedCacheMaxAge().adding(seconds: 1)
         let (sut, store) = makeSUT(currentDate: { fixedCurrentDate })
+        store.completeRetrieval(with: feed.local, timestamp: nonExpiredTimestamp)
 
-        expect(sut, toCompleteWith: .success(()), when: {
-            store.completeRetrieval(with: feed.local, timestamp: nonExpiredTimestamp)
-        })
+        #expect(throws: Never.self) {
+            try sut.validateCache()
+        }
     }
 
-    func test_validateCache_failsOnDeletionErrorOfExpiredCache() {
+    @Test func `Validate cache fails on deletion error of expired cache`() {
         let feed = uniqueImageFeed()
         let fixedCurrentDate = Date()
         let expiredTimestamp = fixedCurrentDate.minusFeedCacheMaxAge().adding(seconds: -1)
         let (sut, store) = makeSUT(currentDate: { fixedCurrentDate })
         let deletionError = anyNSError()
+        store.completeRetrieval(with: feed.local, timestamp: expiredTimestamp)
+        store.completeDeletion(with: deletionError)
 
-        expect(sut, toCompleteWith: .failure(deletionError), when: {
-            store.completeRetrieval(with: feed.local, timestamp: expiredTimestamp)
-            store.completeDeletion(with: deletionError)
-        })
+        #expect(throws: deletionError) {
+            try sut.validateCache()
+        }
     }
 
-    func test_validateCache_succeedsOnSuccessfulDeletionOfExpiredCache() {
+    @Test func `Validate cache succeeds on successful deletion of expired cache`() {
         let feed = uniqueImageFeed()
         let fixedCurrentDate = Date()
         let expiredTimestamp = fixedCurrentDate.minusFeedCacheMaxAge().adding(seconds: -1)
         let (sut, store) = makeSUT(currentDate: { fixedCurrentDate })
+        store.completeRetrieval(with: feed.local, timestamp: expiredTimestamp)
+        store.completeDeletionSuccessfully()
 
-        expect(sut, toCompleteWith: .success(()), when: {
-            store.completeRetrieval(with: feed.local, timestamp: expiredTimestamp)
-            store.completeDeletionSuccessfully()
-        })
+        #expect(throws: Never.self) {
+            try sut.validateCache()
+        }
     }
 
-    private func makeSUT(currentDate: @escaping () -> Date = Date.init, file: StaticString = #filePath, line: UInt = #line) -> (sut: LocalFeedLoader, store: FeedStoreSpy) {
+    // MARK: - Helpers
+
+    private func makeSUT(currentDate: @escaping () -> Date = Date.init) -> (sut: LocalFeedLoader, store: FeedStoreSpy) {
         let store = FeedStoreSpy()
         let sut = LocalFeedLoader(store: store, currentDate: currentDate)
-        trackForMemoryLeaks(store, file: file, line: line)
-        trackForMemoryLeaks(sut, file: file, line: line)
+        trackForMemoryLeaks(store)
+        trackForMemoryLeaks(sut)
         return (sut, store)
-    }
-
-    private func expect(_ sut: LocalFeedLoader, toCompleteWith expectedResult: Result<Void, Error>, when action: () -> Void, file: StaticString = #filePath, line: UInt = #line) {
-        action()
-
-        let receivedResult = Result { try sut.validateCache() }
-        switch (receivedResult, expectedResult) {
-            case (.success, .success):
-                break
-            case let (.failure(receivedError as NSError), .failure(expectedError as NSError)):
-                XCTAssertEqual(receivedError, expectedError, file: file, line: line)
-            default:
-                XCTFail("Expected result \(expectedResult), got \(receivedResult) instead", file: file, line: line)
-        }
     }
 }

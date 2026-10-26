@@ -7,48 +7,52 @@
 
 import EssentialFeed
 import EssentialFeedTestHelpers
-import XCTest
+import Foundation
+import Testing
 
-class LoadFeedImageDataFromCacheUseCaseTests: XCTestCase {
-    func test_init_doesNotMessageStoreUponCreation() {
+@Suite(.trackingMemoryLeaks)
+struct LoadFeedImageDataFromCacheUseCaseTests {
+    @Test func `Init does not message store upon creation`() {
         let (_, store) = makeSUT()
 
-        XCTAssertTrue(store.receivedMessages.isEmpty)
+        #expect(store.receivedMessages.isEmpty)
     }
 
-    func test_loadImageDataFromURL_requestsStoredDataForURL() {
+    @Test func `Load image data from URL requests stored data for URL`() {
         let (sut, store) = makeSUT()
         let url = anyURL()
 
         _ = try? sut.loadImageData(from: url)
 
-        XCTAssertEqual(store.receivedMessages, [.retrieve(dataFor: url)])
+        #expect(store.receivedMessages == [.retrieve(dataFor: url)])
     }
 
-    func test_loadImageDataFromURL_failsOnStoreError() {
+    @Test func `Load image data fails on store error`() {
         let (sut, store) = makeSUT()
+        store.completeRetrieval(with: anyNSError())
 
-        expect(sut, toCompleteWith: failed(), when: {
-            let retrievalError = anyNSError()
-            store.completeRetrieval(with: retrievalError)
-        })
+        #expect(throws: LocalFeedImageDataLoader.LoadError.failed) {
+            try sut.loadImageData(from: anyURL())
+        }
     }
 
-    func test_loadImageDataFromURL_deliversNotFoundErrorOnNotFound() {
+    @Test func `Load image data delivers not found error on not found`() {
         let (sut, store) = makeSUT()
+        store.completeRetrieval(with: .none)
 
-        expect(sut, toCompleteWith: notFound(), when: {
-            store.completeRetrieval(with: .none)
-        })
+        #expect(throws: LocalFeedImageDataLoader.LoadError.notFound) {
+            try sut.loadImageData(from: anyURL())
+        }
     }
 
-    func test_loadImageDataFromURL_deliversStoredDataOnFoundData() {
+    @Test func `Load image data delivers stored data on found data`() throws {
         let (sut, store) = makeSUT()
         let foundData = anyData()
+        store.completeRetrieval(with: foundData)
 
-        expect(sut, toCompleteWith: .success(foundData), when: {
-            store.completeRetrieval(with: foundData)
-        })
+        let receivedData = try sut.loadImageData(from: anyURL())
+
+        #expect(receivedData == foundData)
     }
 
     // MARK: - Helpers
@@ -58,30 +62,6 @@ class LoadFeedImageDataFromCacheUseCaseTests: XCTestCase {
         let sut = LocalFeedImageDataLoader(store: store)
         trackForMemoryLeaks(store)
         trackForMemoryLeaks(sut)
-
         return (sut, store)
-    }
-
-    private func failed() -> Result<Data, Error> {
-        return .failure(LocalFeedImageDataLoader.LoadError.failed)
-    }
-
-    private func notFound() -> Result<Data, Error> {
-        return .failure(LocalFeedImageDataLoader.LoadError.notFound)
-    }
-
-    private func expect(_ sut: LocalFeedImageDataLoader, toCompleteWith expectedResult: Result<Data, Error>, when action: () -> Void, file: StaticString = #filePath, line: UInt = #line) {
-        action()
-
-        let receivedResult = Result { try sut.loadImageData(from: anyURL()) }
-
-        switch (receivedResult, expectedResult) {
-            case let (.success(receivedData), .success(expectedData)):
-                XCTAssertEqual(receivedData, expectedData)
-            case let (.failure(receivedError as LocalFeedImageDataLoader.LoadError), .failure(expectedError as LocalFeedImageDataLoader.LoadError)):
-                XCTAssertEqual(receivedError, expectedError)
-            default:
-                XCTFail()
-        }
     }
 }
