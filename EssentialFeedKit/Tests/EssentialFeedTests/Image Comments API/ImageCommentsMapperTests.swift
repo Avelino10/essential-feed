@@ -7,43 +7,41 @@
 
 import EssentialFeed
 import EssentialFeedTestHelpers
-import XCTest
+import Foundation
+import Testing
 
-class ImageCommentsMapperTests: XCTestCase {
-    func test_map_throwsErrorOnNon2xxHTTPResponse() throws {
+private let successStatusCodes = [200, 201, 250, 280, 299]
+
+struct ImageCommentsMapperTests {
+    @Test(arguments: [199, 150, 300, 400, 500])
+    func `Map throws error on non-2xx HTTP response`(statusCode: Int) {
         let json = makeItemsJSON([])
-        let samples = [199, 150, 300, 400, 500]
 
-        try samples.forEach { code in
-            XCTAssertThrowsError(
-                try ImageCommentsMapper.map(json, from: HTTPURLResponse(statusCode: code))
-            )
+        #expect(throws: ImageCommentsMapper.Error.invalidData) {
+            try ImageCommentsMapper.map(json, from: HTTPURLResponse(statusCode: statusCode))
         }
     }
 
-    func test_map_throwsErrorOn2xxHTTPResponseWithInvalidJSON() throws {
+    @Test(arguments: successStatusCodes)
+    func `Map throws error on 2xx HTTP response with invalid JSON`(statusCode: Int) {
         let invalidJSON = Data("invalidJSON".utf8)
-        let samples = [200, 201, 250, 280, 299]
 
-        try samples.forEach { code in
-            XCTAssertThrowsError(
-                try ImageCommentsMapper.map(invalidJSON, from: HTTPURLResponse(statusCode: code))
-            )
+        #expect(throws: ImageCommentsMapper.Error.invalidData) {
+            try ImageCommentsMapper.map(invalidJSON, from: HTTPURLResponse(statusCode: statusCode))
         }
     }
 
-    func test_map_deliversNoItemsOn2xxHTTPResponseWithEmptyJSONList() throws {
+    @Test(arguments: successStatusCodes)
+    func `Map delivers no items on 2xx HTTP response with empty JSON list`(statusCode: Int) throws {
         let emptyListJSON = makeItemsJSON([])
-        let samples = [200, 201, 250, 280, 299]
 
-        try samples.forEach { code in
-            let result = try ImageCommentsMapper.map(emptyListJSON, from: HTTPURLResponse(statusCode: code))
+        let result = try ImageCommentsMapper.map(emptyListJSON, from: HTTPURLResponse(statusCode: statusCode))
 
-            XCTAssertEqual(result, [])
-        }
+        #expect(result == [])
     }
 
-    func test_map_deliversItemsOn2xxHTTPResponseWithJSONItems() throws {
+    @Test(arguments: successStatusCodes)
+    func `Map delivers items on 2xx HTTP response with JSON items`(statusCode: Int) throws {
         let item1 = makeItem(
             id: UUID(),
             message: "a message",
@@ -59,13 +57,10 @@ class ImageCommentsMapperTests: XCTestCase {
         )
 
         let json = makeItemsJSON([item1.json, item2.json])
-        let samples = [200, 201, 250, 280, 299]
 
-        try samples.forEach { code in
-            let result = try ImageCommentsMapper.map(json, from: HTTPURLResponse(statusCode: code))
+        let result = try ImageCommentsMapper.map(json, from: HTTPURLResponse(statusCode: statusCode))
 
-            XCTAssertEqual(result, [item1.model, item2.model])
-        }
+        #expect(result == [item1.model, item2.model])
     }
 
     // MARK: - Helpers
