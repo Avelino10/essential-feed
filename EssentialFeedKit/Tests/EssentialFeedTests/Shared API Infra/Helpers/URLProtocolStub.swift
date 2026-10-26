@@ -46,6 +46,8 @@ class URLProtocolStub: URLProtocol {
     override func startLoading() {
         guard let stub = URLProtocolStub.stub else { return }
 
+        stub.requestObserver?(request)
+
         if let data = stub.data {
             client?.urlProtocol(self, didLoad: data)
         }
@@ -59,8 +61,6 @@ class URLProtocolStub: URLProtocol {
         } else {
             client?.urlProtocolDidFinishLoading(self)
         }
-
-        stub.requestObserver?(request)
     }
 
     override func stopLoading() {}
