@@ -7,6 +7,6 @@
 
 import Foundation
 
-public struct ResourceLoadingViewModel {
+public struct ResourceLoadingViewModel: Sendable {
     public let isLoading: Bool
 }

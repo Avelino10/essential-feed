@@ -9,6 +9,7 @@ import EssentialFeed
 import EssentialFeedTestHelpers
 import Testing
 
+@MainActor
 @Suite(.trackingMemoryLeaks)
 struct LoadResourcePresenterTests {
     @Test func `Init does not deliver messages`() {

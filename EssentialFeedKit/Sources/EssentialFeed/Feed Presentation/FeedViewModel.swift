@@ -7,6 +7,6 @@
 
 import Foundation
 
-public struct FeedViewModel {
+public struct FeedViewModel: Sendable {
     public let feed: [FeedImage]
 }
