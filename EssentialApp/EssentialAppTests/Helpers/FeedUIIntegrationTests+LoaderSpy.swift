@@ -8,6 +8,7 @@
 import Combine
 import EssentialFeed
 import EssentialFeediOS
+import EssentialFeedTestHelpers
 import Foundation
 
 extension FeedUIIntegrationTests {
