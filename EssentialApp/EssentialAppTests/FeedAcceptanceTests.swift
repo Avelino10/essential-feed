@@ -86,7 +86,7 @@ struct FeedAcceptanceTests {
     // MARK: - Helpers
 
     private func launch(httpClient: HTTPClientStub = .offline, store: InMemoryFeedStore = .empty) async throws -> ListViewController {
-        let sut = SceneDelegate(httpClient: httpClient, store: store, scheduler: .immediateOnMainQueue)
+        let sut = SceneDelegate(httpClient: httpClient, store: store)
         sut.window = UIWindow(frame: CGRect(x: 0, y: 0, width: 1, height: 1))
         sut.configureWindow()
 
@@ -131,7 +131,7 @@ struct FeedAcceptanceTests {
     }
 
     private func enterBackground(with store: InMemoryFeedStore) async throws {
-        let sut = SceneDelegate(httpClient: HTTPClientStub.offline, store: store, scheduler: .immediateOnMainQueue)
+        let sut = SceneDelegate(httpClient: HTTPClientStub.offline, store: store)
         let scene = try #require(UIApplication.shared.connectedScenes.first)
         sut.sceneWillResignActive(scene)
         await sut.cacheValidation?.value
