@@ -32,13 +32,7 @@ struct EssentialFeedAPIEndToEndTests {
     // MARK: - Helpers
 
     private func get(from url: URL) async throws -> (Data, HTTPURLResponse) {
-        let client = ephemeralClient()
-
-        return try await withCheckedThrowingContinuation { continuation in
-            client.get(from: url) { result in
-                continuation.resume(with: result)
-            }
-        }
+        try await ephemeralClient().get(from: url)
     }
 
     private var feedTestServerURL: URL {

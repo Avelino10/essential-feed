@@ -15,7 +15,8 @@ class URLProtocolStub: URLProtocol {
         let requestObserver: ((URLRequest) -> Void)?
     }
 
-    private static var _stub: Stub?
+    // Guarded by `queue`.
+    nonisolated(unsafe) private static var _stub: Stub?
     private static var stub: Stub? {
         get { return queue.sync { _stub } }
         set { queue.sync { _stub = newValue } }
@@ -27,8 +28,11 @@ class URLProtocolStub: URLProtocol {
         stub = Stub(data: data, response: response, error: error, requestObserver: nil)
     }
 
+    /// Completes observed requests with an empty 200 response: `URLSession` always
+    /// finishes a request with either a response or an error.
     static func observeRequests(observer: @escaping (URLRequest) -> Void) {
-        stub = Stub(data: nil, response: nil, error: nil, requestObserver: observer)
+        let response = HTTPURLResponse(url: URL(string: "http://any-url.com")!, statusCode: 200, httpVersion: nil, headerFields: nil)
+        stub = Stub(data: nil, response: response, error: nil, requestObserver: observer)
     }
 
     static func removeStub() {
@@ -48,12 +52,14 @@ class URLProtocolStub: URLProtocol {
 
         stub.requestObserver?(request)
 
-        if let data = stub.data {
-            client?.urlProtocol(self, didLoad: data)
-        }
-
+        // The response has to come before the data: `URLSession`'s async API
+        // pairs received bytes with the response that precedes them.
         if let response = stub.response {
             client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
+        }
+
+        if let data = stub.data {
+            client?.urlProtocol(self, didLoad: data)
         }
 
         if let error = stub.error {

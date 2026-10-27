@@ -31,7 +31,7 @@ struct URLSessionHTTPClientTests {
     }
 
     @Test func `Cancelling the get from URL task cancels the URL request`() async throws {
-        let result = await resultFor(taskHandler: { $0.cancel() })
+        let result = await resultFor(cancellingTask: true)
 
         let error = #expect(throws: URLError.self) { try result.get() }
         #expect(error?.code == .cancelled)
@@ -47,10 +47,10 @@ struct URLSessionHTTPClientTests {
         #expect(error?.code == requestError.code)
     }
 
+    // No response and no error isn't a case: `URLSession` always completes with one of them,
+    // and its async API traps if it doesn't.
     @Test(arguments: [
-        (nil, nil, nil),
         (nil, nonHTTPURLResponse(), nil),
-        (anyData(), nil, nil),
         (anyData(), nil, anyNSError()),
         (nil, nonHTTPURLResponse(), anyNSError()),
         (nil, anyHTTPURLResponse(), anyNSError()),
@@ -98,16 +98,17 @@ struct URLSessionHTTPClientTests {
         return sut
     }
 
-    private func resultFor(_ values: (data: Data?, response: URLResponse?, error: Error?)? = nil, url: URL = anyURL(), taskHandler: (HTTPClientTask) -> Void = { _ in }) async -> HTTPClient.Result {
+    private func resultFor(_ values: (data: Data?, response: URLResponse?, error: Error?)? = nil, url: URL = anyURL(), cancellingTask: Bool = false) async -> Result<(Data, HTTPURLResponse), Error> {
         values.map { URLProtocolStub.stub(data: $0, response: $1, error: $2) }
 
         let sut = makeSUT()
+        let task = Task { try await sut.get(from: url) }
 
-        return await withCheckedContinuation { continuation in
-            taskHandler(sut.get(from: url) { result in
-                continuation.resume(returning: result)
-            })
+        if cancellingTask {
+            task.cancel()
         }
+
+        return await task.result
     }
 }
 

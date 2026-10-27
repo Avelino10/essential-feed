@@ -13,49 +13,49 @@ import UIKit
 
 @MainActor
 struct FeedAcceptanceTests {
-    @Test func `On launch displays remote feed when customer has connectivity`() throws {
-        let feed = try launch(httpClient: .online(response), store: .empty)
+    @Test func `On launch displays remote feed when customer has connectivity`() async throws {
+        let feed = try await launch(httpClient: .online { response(for: $0) }, store: .empty)
 
         #expect(feed.numberOfRenderedFeedImageViews() == 2)
-        #expect(feed.renderedFeedImageData(at: 0) == makeImageData0().imagePixels)
-        #expect(feed.renderedFeedImageData(at: 1) == makeImageData1().imagePixels)
+        #expect(await renderedImageData(in: feed, at: 0) == makeImageData0().imagePixels)
+        #expect(await renderedImageData(in: feed, at: 1) == makeImageData1().imagePixels)
         #expect(feed.canLoadMoreFeed)
 
-        feed.simulateLoadMoreFeedAction()
+        await loadMore(in: feed)
 
         #expect(feed.numberOfRenderedFeedImageViews() == 3)
-        #expect(feed.renderedFeedImageData(at: 0) == makeImageData0().imagePixels)
-        #expect(feed.renderedFeedImageData(at: 1) == makeImageData1().imagePixels)
-        #expect(feed.renderedFeedImageData(at: 2) == makeImageData2().imagePixels)
+        #expect(await renderedImageData(in: feed, at: 0) == makeImageData0().imagePixels)
+        #expect(await renderedImageData(in: feed, at: 1) == makeImageData1().imagePixels)
+        #expect(await renderedImageData(in: feed, at: 2) == makeImageData2().imagePixels)
         #expect(feed.canLoadMoreFeed)
 
-        feed.simulateLoadMoreFeedAction()
+        await loadMore(in: feed)
 
         #expect(feed.numberOfRenderedFeedImageViews() == 3)
-        #expect(feed.renderedFeedImageData(at: 0) == makeImageData0().imagePixels)
-        #expect(feed.renderedFeedImageData(at: 1) == makeImageData1().imagePixels)
-        #expect(feed.renderedFeedImageData(at: 2) == makeImageData2().imagePixels)
+        #expect(await renderedImageData(in: feed, at: 0) == makeImageData0().imagePixels)
+        #expect(await renderedImageData(in: feed, at: 1) == makeImageData1().imagePixels)
+        #expect(await renderedImageData(in: feed, at: 2) == makeImageData2().imagePixels)
         #expect(!feed.canLoadMoreFeed)
     }
 
-    @Test func `On launch displays cached remote feed when customer has no connectivity`() throws {
+    @Test func `On launch displays cached remote feed when customer has no connectivity`() async throws {
         let sharedStore = InMemoryFeedStore.empty
 
-        let onlineFeed = try launch(httpClient: .online(response), store: sharedStore)
-        onlineFeed.simulateFeedImageViewVisible(at: 0)
-        onlineFeed.simulateFeedImageViewVisible(at: 1)
-        onlineFeed.simulateLoadMoreFeedAction()
-        onlineFeed.simulateFeedImageViewVisible(at: 2)
-        let offlineFeed = try launch(httpClient: .offline, store: sharedStore)
+        let onlineFeed = try await launch(httpClient: .online { response(for: $0) }, store: sharedStore)
+        _ = await renderedImageData(in: onlineFeed, at: 0)
+        _ = await renderedImageData(in: onlineFeed, at: 1)
+        await loadMore(in: onlineFeed)
+        _ = await renderedImageData(in: onlineFeed, at: 2)
+        let offlineFeed = try await launch(httpClient: .offline, store: sharedStore)
 
         #expect(offlineFeed.numberOfRenderedFeedImageViews() == 3)
-        #expect(offlineFeed.renderedFeedImageData(at: 0) == makeImageData0().imagePixels)
-        #expect(offlineFeed.renderedFeedImageData(at: 1) == makeImageData1().imagePixels)
-        #expect(offlineFeed.renderedFeedImageData(at: 2) == makeImageData2().imagePixels)
+        #expect(await renderedImageData(in: offlineFeed, at: 0) == makeImageData0().imagePixels)
+        #expect(await renderedImageData(in: offlineFeed, at: 1) == makeImageData1().imagePixels)
+        #expect(await renderedImageData(in: offlineFeed, at: 2) == makeImageData2().imagePixels)
     }
 
-    @Test func `On launch displays empty feed when customer has no connectivity and no cache`() throws {
-        let feed = try launch(httpClient: .offline, store: .empty)
+    @Test func `On launch displays empty feed when customer has no connectivity and no cache`() async throws {
+        let feed = try await launch(httpClient: .offline, store: .empty)
 
         #expect(feed.numberOfRenderedFeedImageViews() == 0)
     }
@@ -76,8 +76,8 @@ struct FeedAcceptanceTests {
         #expect(store.feedCache != nil, "Expected to keep non-expired cache")
     }
 
-    @Test func `On feed image selection displays comments`() throws {
-        let comments = try showCommentsForFirstImage()
+    @Test func `On feed image selection displays comments`() async throws {
+        let comments = try await showCommentsForFirstImage()
 
         #expect(comments.numberOfRenderedComments() == 1)
         #expect(comments.commentMessage(at: 0) == makeCommentMessage())
@@ -85,7 +85,7 @@ struct FeedAcceptanceTests {
 
     // MARK: - Helpers
 
-    private func launch(httpClient: HTTPClientStub = .offline, store: InMemoryFeedStore = .empty) throws -> ListViewController {
+    private func launch(httpClient: HTTPClientStub = .offline, store: InMemoryFeedStore = .empty) async throws -> ListViewController {
         let sut = SceneDelegate(httpClient: httpClient, store: store, scheduler: .immediateOnMainQueue)
         sut.window = UIWindow(frame: CGRect(x: 0, y: 0, width: 1, height: 1))
         sut.configureWindow()
@@ -93,7 +93,34 @@ struct FeedAcceptanceTests {
         let nav = try #require(sut.window?.rootViewController as? UINavigationController)
         let feed = try #require(nav.topViewController as? ListViewController)
         feed.simulateAppearance()
+        await waitUntil { !feed.isShowingLoadingIndicator }
         return feed
+    }
+
+    private func loadMore(in feed: ListViewController) async {
+        feed.simulateLoadMoreFeedAction()
+        await waitUntil { !feed.isShowingLoadMoreFeedIndicator }
+    }
+
+    /// Asks for the cell until it renders an image. Each call dequeues a new cell, and once the
+    /// remote image is cached, a new cell renders it straight away, whichever cell the table
+    /// itself kept or released in the meantime.
+    private func renderedImageData(in feed: ListViewController, at index: Int) async -> [UInt8]? {
+        var imageData = feed.renderedFeedImageData(at: index)
+        await waitUntil {
+            imageData = feed.renderedFeedImageData(at: index)
+            return imageData != nil
+        }
+        return imageData
+    }
+
+    /// Responses from the async HTTP client reach the UI on a later main-queue turn,
+    /// so the tests wait for each load to finish before checking the UI.
+    private func waitUntil(timeout: Duration = .seconds(2), _ condition: () -> Bool) async {
+        let deadline = ContinuousClock.now + timeout
+        while !condition(), ContinuousClock.now < deadline {
+            try? await Task.sleep(for: .milliseconds(1))
+        }
     }
 
     private func enterBackground(with store: InMemoryFeedStore) throws {
@@ -102,49 +129,45 @@ struct FeedAcceptanceTests {
         sut.sceneWillResignActive(scene)
     }
 
-    private func showCommentsForFirstImage() throws -> ListViewController {
-        let feed = try launch(httpClient: .online(response), store: .empty)
+    private func showCommentsForFirstImage() async throws -> ListViewController {
+        let feed = try await launch(httpClient: .online { response(for: $0) }, store: .empty)
 
         feed.simulateTapOnFeedImage(at: 0)
-        RunLoop.current.run(until: Date())
 
         let nav = try #require(feed.navigationController)
+        await waitUntil { nav.topViewController !== feed }
         let comments = try #require(nav.topViewController as? ListViewController)
         comments.simulateAppearance()
+        await waitUntil { !comments.isShowingLoadingIndicator }
         return comments
     }
 
-    private class HTTPClientStub: HTTPClient {
-        private class Task: HTTPClientTask {
-            func cancel() {}
-        }
+    private final class HTTPClientStub: HTTPClient {
+        private let stub: @Sendable (URL) throws -> (Data, HTTPURLResponse)
 
-        private let stub: (URL) -> HTTPClient.Result
-
-        init(stub: @escaping (URL) -> HTTPClient.Result) {
+        init(stub: @escaping @Sendable (URL) throws -> (Data, HTTPURLResponse)) {
             self.stub = stub
         }
 
-        func get(from url: URL, completion: @escaping (HTTPClient.Result) -> Void) -> HTTPClientTask {
-            completion(stub(url))
-            return Task()
+        func get(from url: URL) async throws -> (Data, HTTPURLResponse) {
+            try stub(url)
         }
 
         static var offline: HTTPClientStub {
-            HTTPClientStub(stub: { _ in .failure(NSError(domain: "offline", code: 0)) })
+            HTTPClientStub(stub: { _ in throw NSError(domain: "offline", code: 0) })
         }
 
-        static func online(_ stub: @escaping (URL) -> (Data, HTTPURLResponse)) -> HTTPClientStub {
-            HTTPClientStub { url in .success(stub(url)) }
+        static func online(_ stub: @escaping @Sendable (URL) -> (Data, HTTPURLResponse)) -> HTTPClientStub {
+            HTTPClientStub(stub: stub)
         }
     }
 
-    private func response(for url: URL) -> (Data, HTTPURLResponse) {
+    private nonisolated func response(for url: URL) -> (Data, HTTPURLResponse) {
         let response = HTTPURLResponse(url: url, statusCode: 200, httpVersion: nil, headerFields: nil)!
         return (makeData(for: url), response)
     }
 
-    private func makeData(for url: URL) -> Data {
+    private nonisolated func makeData(for url: URL) -> Data {
         switch url.path {
             case "/image-0": return makeImageData0()
             case "/image-1": return makeImageData1()
@@ -162,28 +185,28 @@ struct FeedAcceptanceTests {
         }
     }
 
-    private func makeImageData0() -> Data { UIImage.make(withColor: .red).pngData()! }
-    private func makeImageData1() -> Data { UIImage.make(withColor: .green).pngData()! }
-    private func makeImageData2() -> Data { UIImage.make(withColor: .blue).pngData()! }
+    private nonisolated func makeImageData0() -> Data { UIImage.make(withColor: .red).pngData()! }
+    private nonisolated func makeImageData1() -> Data { UIImage.make(withColor: .green).pngData()! }
+    private nonisolated func makeImageData2() -> Data { UIImage.make(withColor: .blue).pngData()! }
 
-    private func makeFirstFeedPageData() -> Data {
+    private nonisolated func makeFirstFeedPageData() -> Data {
         return try! JSONSerialization.data(withJSONObject: ["items": [
             ["id": "2AB2AE66-A4B7-4A16-B374-51BBAC8DB086", "image": "http://feed.com/image-0"],
             ["id": "A28F5FE3-27A7-44E9-8DF5-53742D0E4A5A", "image": "http://feed.com/image-1"],
         ]])
     }
 
-    private func makeSecondFeedPageData() -> Data {
+    private nonisolated func makeSecondFeedPageData() -> Data {
         return try! JSONSerialization.data(withJSONObject: ["items": [
             ["id": "166FCDD7-C9F4-420A-B2D6-CE2EAFA3D82F", "image": "http://feed.com/image-2"],
         ]])
     }
 
-    private func makeLastEmptyFeedPageData() -> Data {
+    private nonisolated func makeLastEmptyFeedPageData() -> Data {
         return try! JSONSerialization.data(withJSONObject: ["items": []])
     }
 
-    private func makeCommentsData() -> Data {
+    private nonisolated func makeCommentsData() -> Data {
         return try! JSONSerialization.data(withJSONObject: ["items": [
             [
                 "id": UUID().uuidString,
@@ -196,7 +219,7 @@ struct FeedAcceptanceTests {
         ]])
     }
 
-    private func makeCommentMessage() -> String {
+    private nonisolated func makeCommentMessage() -> String {
         "a message"
     }
 }
