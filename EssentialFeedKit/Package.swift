@@ -2,6 +2,9 @@
 
 import PackageDescription
 
+/// Targets migrated to Swift 6 language mode.
+let swift6: [SwiftSetting] = [.swiftLanguageMode(.v6)]
+
 let package = Package(
     name: "EssentialFeedKit",
     defaultLocalization: "en",
@@ -15,7 +18,10 @@ let package = Package(
         .library(name: "EssentialFeedTestHelpers", targets: ["EssentialFeedTestHelpers"]),
     ],
     targets: [
-        .target(name: "EssentialFeed"),
+        .target(
+            name: "EssentialFeed",
+            swiftSettings: swift6
+        ),
         .target(
             name: "EssentialFeediOS",
             dependencies: ["EssentialFeed"]
@@ -23,19 +29,23 @@ let package = Package(
         .target(
             name: "EssentialFeedTestHelpers",
             dependencies: ["EssentialFeed"],
-            path: "Tests/EssentialFeedTestHelpers"
+            path: "Tests/EssentialFeedTestHelpers",
+            swiftSettings: swift6
         ),
         .testTarget(
             name: "EssentialFeedTests",
-            dependencies: ["EssentialFeed", "EssentialFeedTestHelpers"]
+            dependencies: ["EssentialFeed", "EssentialFeedTestHelpers"],
+            swiftSettings: swift6
         ),
         .testTarget(
             name: "EssentialFeedCacheIntegrationTests",
-            dependencies: ["EssentialFeed", "EssentialFeedTestHelpers"]
+            dependencies: ["EssentialFeed", "EssentialFeedTestHelpers"],
+            swiftSettings: swift6
         ),
         .testTarget(
             name: "EssentialFeedAPIEndToEndTests",
-            dependencies: ["EssentialFeed", "EssentialFeedTestHelpers"]
+            dependencies: ["EssentialFeed", "EssentialFeedTestHelpers"],
+            swiftSettings: swift6
         ),
         .testTarget(
             name: "EssentialFeediOSTests",
@@ -46,7 +56,7 @@ let package = Package(
     swiftLanguageModes: [.v5]
 )
 
-// Complete concurrency checking as warnings while the targets are still in Swift 5 mode.
-for target in package.targets {
-    target.swiftSettings = (target.swiftSettings ?? []) + [.enableUpcomingFeature("StrictConcurrency")]
+// Complete concurrency checking as warnings for the targets still in Swift 5 mode.
+for target in package.targets where target.swiftSettings == nil {
+    target.swiftSettings = [.enableUpcomingFeature("StrictConcurrency")]
 }
