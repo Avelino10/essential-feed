@@ -45,3 +45,8 @@ let package = Package(
     ],
     swiftLanguageModes: [.v5]
 )
+
+// Complete concurrency checking as warnings while the targets are still in Swift 5 mode.
+for target in package.targets {
+    target.swiftSettings = (target.swiftSettings ?? []) + [.enableUpcomingFeature("StrictConcurrency")]
+}
