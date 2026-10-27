@@ -8,13 +8,11 @@
 import EssentialFeed
 import UIKit
 
-@MainActor
 public protocol FeedImageCellControllerDelegate {
     func didRequestImage()
     func didCancelRequestImage()
 }
 
-@MainActor
 public final class FeedImageCellController: NSObject {
     public typealias ResourceViewModel = UIImage
     private let viewModel: FeedImageViewModel

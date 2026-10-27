@@ -8,12 +8,12 @@
 import UIKit
 
 public struct CellController {
-    let id: AnyHashable
+    nonisolated let id: any Hashable & Sendable
     let dataSource: UITableViewDataSource
     let delegate: UITableViewDelegate?
     let dataSourcePrefetching: UITableViewDataSourcePrefetching?
 
-    public init(id: AnyHashable, _ dataSource: UITableViewDataSource) {
+    public init(id: some Hashable & Sendable, _ dataSource: UITableViewDataSource) {
         self.id = id
         self.dataSource = dataSource
         delegate = dataSource as? UITableViewDelegate
@@ -21,14 +21,16 @@ public struct CellController {
     }
 }
 
-extension CellController: Equatable {
-    public static func == (lhs: CellController, rhs: CellController) -> Bool {
-        lhs.id == rhs.id
+// Identity only uses the immutable `id`, so it works from any isolation, as the
+// diffable data source requires of its item identifiers.
+extension CellController: nonisolated Equatable {
+    public nonisolated static func == (lhs: CellController, rhs: CellController) -> Bool {
+        AnyHashable(lhs.id) == AnyHashable(rhs.id)
     }
 }
 
-extension CellController: Hashable {
-    public func hash(into hasher: inout Hasher) {
-        hasher.combine(id)
+extension CellController: nonisolated Hashable {
+    public nonisolated func hash(into hasher: inout Hasher) {
+        id.hash(into: &hasher)
     }
 }

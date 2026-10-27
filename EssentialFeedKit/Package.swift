@@ -28,7 +28,11 @@ let package = Package(
         ),
         .target(
             name: "EssentialFeediOS",
-            dependencies: ["EssentialFeed"]
+            dependencies: ["EssentialFeed"],
+            swiftSettings: [
+                .defaultIsolation(MainActor.self),
+                .enableUpcomingFeature("StrictConcurrency"),
+            ]
         ),
         .target(
             name: "EssentialFeedTestHelpers",
