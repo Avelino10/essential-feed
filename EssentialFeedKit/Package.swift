@@ -2,8 +2,12 @@
 
 import PackageDescription
 
-/// Targets migrated to Swift 6 language mode.
-let swift6: [SwiftSetting] = [.swiftLanguageMode(.v6)]
+/// Targets migrated to Swift 6 language mode. Nonisolated async functions run on the
+/// caller's actor, as in new Xcode projects, instead of always hopping to the global executor.
+let swift6: [SwiftSetting] = [
+    .swiftLanguageMode(.v6),
+    .enableUpcomingFeature("NonisolatedNonsendingByDefault"),
+]
 
 let package = Package(
     name: "EssentialFeedKit",

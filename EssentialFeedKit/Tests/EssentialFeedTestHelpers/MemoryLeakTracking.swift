@@ -54,7 +54,7 @@ public struct MemoryLeakTrackingTrait: TestTrait, SuiteTrait, TestScoping {
         testCase == nil ? nil : self
     }
 
-    public func provideScope(for test: Test, testCase: Test.Case?, performing function: @Sendable () async throws -> Void) async throws {
+    public func provideScope(for test: Test, testCase: Test.Case?, performing function: @concurrent @Sendable () async throws -> Void) async throws {
         let tracker = MemoryLeakTracker()
         try await MemoryLeakTracker.$current.withValue(tracker) {
             try await function()
