@@ -12,13 +12,15 @@ import Foundation
 /// How the app loads its content. The feed and its images come from the server first,
 /// are cached as they arrive, and fall back to the cache when the server can't be reached.
 /// Comments always come from the server.
+///
+/// The loads are `@concurrent`, so they run off the caller's actor (usually the main actor).
 struct FeedLoaders: Sendable {
     let httpClient: HTTPClient
     let localFeedLoader: LocalFeedLoader
     let localImageLoader: LocalFeedImageDataLoader
     let baseURL: URL
 
-    func loadFirstPage() async throws -> Paginated<FeedImage> {
+    @concurrent func loadFirstPage() async throws -> Paginated<FeedImage> {
         let items: [FeedImage]
 
         do {
@@ -31,7 +33,7 @@ struct FeedLoaders: Sendable {
         return makePage(items: items, last: items.last)
     }
 
-    func loadImageData(from url: URL) async throws -> Data {
+    @concurrent func loadImageData(from url: URL) async throws -> Data {
         do {
             return try await localImageLoader.loadImageData(from: url)
         } catch {
@@ -42,12 +44,12 @@ struct FeedLoaders: Sendable {
         }
     }
 
-    func loadComments(from url: URL) async throws -> [ImageComment] {
+    @concurrent func loadComments(from url: URL) async throws -> [ImageComment] {
         let (data, response) = try await httpClient.get(from: url)
         return try ImageCommentsMapper.map(data, from: response)
     }
 
-    private func loadMore(after last: FeedImage) async throws -> Paginated<FeedImage> {
+    @concurrent private func loadMore(after last: FeedImage) async throws -> Paginated<FeedImage> {
         async let cachedItems = localFeedLoader.load()
         async let newItems = loadRemoteFeed(after: last)
         let (cached, new) = try await (cachedItems, newItems)
