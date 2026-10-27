@@ -12,52 +12,52 @@ import Testing
 
 @Suite(.trackingMemoryLeaks)
 struct CoreDataFeedImageDataStoreTests {
-    @Test func `Retrieve image data delivers not found when empty`() throws {
+    @Test func `Retrieve image data delivers not found when empty`() async throws {
         let sut = try makeSUT()
 
-        let receivedData = try sut.retrieve(dataForURL: anyURL())
+        let receivedData = try await sut.retrieve(dataForURL: anyURL())
 
         #expect(receivedData == nil)
     }
 
-    @Test func `Retrieve image data delivers not found when stored data URL does not match`() throws {
+    @Test func `Retrieve image data delivers not found when stored data URL does not match`() async throws {
         let sut = try makeSUT()
         let url = URL(string: "http://a-url.com")!
         let nonMatchingURL = URL(string: "http://another-url.com")!
 
-        try insert(anyData(), for: url, into: sut)
+        try await insert(anyData(), for: url, into: sut)
 
-        let receivedData = try sut.retrieve(dataForURL: nonMatchingURL)
+        let receivedData = try await sut.retrieve(dataForURL: nonMatchingURL)
         #expect(receivedData == nil)
     }
 
-    @Test func `Retrieve image data delivers found data when there is stored image data matching URL`() throws {
+    @Test func `Retrieve image data delivers found data when there is stored image data matching URL`() async throws {
         let sut = try makeSUT()
         let storedData = anyData()
         let matchingURL = URL(string: "http://a-url.com")!
 
-        try insert(storedData, for: matchingURL, into: sut)
+        try await insert(storedData, for: matchingURL, into: sut)
 
-        let receivedData = try sut.retrieve(dataForURL: matchingURL)
+        let receivedData = try await sut.retrieve(dataForURL: matchingURL)
         #expect(receivedData == storedData)
     }
 
-    @Test func `Retrieve image data delivers last inserted value`() throws {
+    @Test func `Retrieve image data delivers last inserted value`() async throws {
         let sut = try makeSUT()
         let firstStoredData = Data("first".utf8)
         let lastStoredData = Data("last".utf8)
         let matchingURL = URL(string: "http://a-url.com")!
 
-        try insert(firstStoredData, for: matchingURL, into: sut)
-        try insert(lastStoredData, for: matchingURL, into: sut)
+        try await insert(firstStoredData, for: matchingURL, into: sut)
+        try await insert(lastStoredData, for: matchingURL, into: sut)
 
-        let receivedData = try sut.retrieve(dataForURL: matchingURL)
+        let receivedData = try await sut.retrieve(dataForURL: matchingURL)
         #expect(receivedData == lastStoredData)
     }
 
     // MARK: - Helpers
 
-    private func makeSUT() throws -> CoreDataFeedStore {
+    private func makeSUT() throws -> FeedStore & FeedImageDataStore {
         let storeURL = URL(fileURLWithPath: "/dev/null")
         let sut = try CoreDataFeedStore(storeURL: storeURL)
         trackForMemoryLeaks(sut)
@@ -68,9 +68,9 @@ struct CoreDataFeedImageDataStoreTests {
         LocalFeedImage(id: UUID(), description: "any", location: "any", url: url)
     }
 
-    private func insert(_ data: Data, for url: URL, into sut: CoreDataFeedStore) throws {
+    private func insert(_ data: Data, for url: URL, into sut: FeedStore & FeedImageDataStore) async throws {
         let image = localImage(url: url)
-        try sut.insert([image], timestamp: Date())
-        try sut.insert(data, for: url)
+        try await sut.insert([image], timestamp: Date())
+        try await sut.insert(data, for: url)
     }
 }

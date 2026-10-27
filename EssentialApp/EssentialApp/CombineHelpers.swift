@@ -67,28 +67,26 @@ public extension FeedImageDataLoader {
     typealias Publisher = AnyPublisher<Data, Error>
 
     func loadImageDataPublisher(from url: URL) -> Publisher {
-        return Deferred {
-            Future { completion in
-                completion(Result {
-                    try self.loadImageData(from: url)
-                })
+        asyncPublisher { try await self.loadImageData(from: url) }
+    }
+}
+
+extension Publisher where Output == Data, Failure == Error {
+    /// Passes the image data on once it has been saved, like `caching(to: FeedCache)`.
+    func caching(to cache: FeedImageDataCache, using url: URL) -> AnyPublisher<Output, Failure> {
+        flatMap { data in
+            asyncPublisher {
+                await cache.saveIgnoringResult(data, for: url)
+                return data
             }
         }
         .eraseToAnyPublisher()
     }
 }
 
-extension Publisher where Output == Data {
-    func caching(to cache: FeedImageDataCache, using url: URL) -> AnyPublisher<Output, Failure> {
-        handleEvents(receiveOutput: { data in
-            cache.saveIgnoringResult(data, for: url)
-        }).eraseToAnyPublisher()
-    }
-}
-
 private extension FeedImageDataCache {
-    func saveIgnoringResult(_ data: Data, for url: URL) {
-        try? save(data, for: url)
+    func saveIgnoringResult(_ data: Data, for url: URL) async {
+        try? await save(data, for: url)
     }
 }
 

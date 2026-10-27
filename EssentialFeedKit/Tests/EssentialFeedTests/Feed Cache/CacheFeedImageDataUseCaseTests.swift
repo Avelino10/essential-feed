@@ -12,37 +12,37 @@ import Testing
 
 @Suite(.trackingMemoryLeaks)
 struct CacheFeedImageDataUseCaseTests {
-    @Test func `Init does not message store upon creation`() {
+    @Test func `Init does not message store upon creation`() async {
         let (_, store) = makeSUT()
 
         #expect(store.receivedMessages.isEmpty)
     }
 
-    @Test func `Save image data for URL requests image data insertion for URL`() {
+    @Test func `Save image data for URL requests image data insertion for URL`() async {
         let (sut, store) = makeSUT()
         let url = anyURL()
         let data = anyData()
 
-        try? sut.save(data, for: url)
+        try? await sut.save(data, for: url)
 
         #expect(store.receivedMessages == [.insert(data: data, for: url)])
     }
 
-    @Test func `Save image data fails on store insertion error`() {
+    @Test func `Save image data fails on store insertion error`() async {
         let (sut, store) = makeSUT()
         store.completeInsertion(with: anyNSError())
 
-        #expect(throws: LocalFeedImageDataLoader.SaveError.failed) {
-            try sut.save(anyData(), for: anyURL())
+        await #expect(throws: LocalFeedImageDataLoader.SaveError.failed) {
+            try await sut.save(anyData(), for: anyURL())
         }
     }
 
-    @Test func `Save image data succeeds on successful store insertion`() {
+    @Test func `Save image data succeeds on successful store insertion`() async {
         let (sut, store) = makeSUT()
         store.completeInsertionSuccessfully()
 
-        #expect(throws: Never.self) {
-            try sut.save(anyData(), for: anyURL())
+        await #expect(throws: Never.self) {
+            try await sut.save(anyData(), for: anyURL())
         }
     }
 

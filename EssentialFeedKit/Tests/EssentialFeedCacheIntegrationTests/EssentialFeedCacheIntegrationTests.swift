@@ -88,9 +88,9 @@ final class EssentialFeedCacheIntegrationTests {
         let dataToSave = anyData()
 
         try await feedLoader.save([image])
-        try imageLoaderToPerformSave.save(dataToSave, for: image.url)
+        try await imageLoaderToPerformSave.save(dataToSave, for: image.url)
 
-        #expect(try imageLoaderToPerformLoad.loadImageData(from: image.url) == dataToSave)
+        #expect(try await imageLoaderToPerformLoad.loadImageData(from: image.url) == dataToSave)
     }
 
     @Test func `Save image data overrides saved image data on a separate instance`() async throws {
@@ -103,10 +103,10 @@ final class EssentialFeedCacheIntegrationTests {
         let lastImageData = Data("last".utf8)
 
         try await feedLoader.save([image])
-        try imageLoaderToPerformFirstSave.save(firstImageData, for: image.url)
-        try imageLoaderToPerformLastSave.save(lastImageData, for: image.url)
+        try await imageLoaderToPerformFirstSave.save(firstImageData, for: image.url)
+        try await imageLoaderToPerformLastSave.save(lastImageData, for: image.url)
 
-        #expect(try imageLoaderToPerformLoad.loadImageData(from: image.url) == lastImageData)
+        #expect(try await imageLoaderToPerformLoad.loadImageData(from: image.url) == lastImageData)
     }
 
     // MARK: - Helpers

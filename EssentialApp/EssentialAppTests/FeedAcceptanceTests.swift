@@ -92,6 +92,7 @@ struct FeedAcceptanceTests {
 
         let nav = try #require(sut.window?.rootViewController as? UINavigationController)
         let feed = try #require(nav.topViewController as? ListViewController)
+
         feed.simulateAppearance()
         await waitUntil { !feed.isShowingLoadingIndicator }
         return feed
@@ -102,20 +103,26 @@ struct FeedAcceptanceTests {
         await waitUntil { !feed.isShowingLoadMoreFeedIndicator }
     }
 
-    /// Asks for the cell until it renders an image. Each call dequeues a new cell, and once the
-    /// remote image is cached, a new cell renders it straight away, whichever cell the table
-    /// itself kept or released in the meantime.
+    /// The table lays out and reuses cells on its own, so while an image load is in flight the
+    /// row's cell controller can switch to a different cell. If the cell we hold doesn't get
+    /// the image shortly, ask for the row again, which starts a new load if the last one ended.
     private func renderedImageData(in feed: ListViewController, at index: Int) async -> [UInt8]? {
-        var imageData = feed.renderedFeedImageData(at: index)
-        await waitUntil {
-            imageData = feed.renderedFeedImageData(at: index)
-            return imageData != nil
+        let deadline = ContinuousClock.now + .seconds(2)
+
+        while ContinuousClock.now < deadline {
+            let view = feed.simulateFeedImageViewVisible(at: index)
+            await waitUntil(timeout: .milliseconds(100)) { view?.renderedImage != nil }
+
+            if let image = view?.renderedImage {
+                return image
+            }
         }
-        return imageData
+
+        return nil
     }
 
-    /// Responses from the async HTTP client reach the UI on a later main-queue turn,
-    /// so the tests wait for each load to finish before checking the UI.
+    /// Loads complete asynchronously and reach the UI on a later main-queue turn,
+    /// so the tests wait for each one to finish before checking the UI.
     private func waitUntil(timeout: Duration = .seconds(2), _ condition: () -> Bool) async {
         let deadline = ContinuousClock.now + timeout
         while !condition(), ContinuousClock.now < deadline {
