@@ -10,7 +10,9 @@ import Testing
 
 /// Records an issue for every tracked instance that is still alive when `verifyNoLeaks()` runs.
 public final class MemoryLeakTracker: Sendable {
-    private struct TrackedInstance {
+    // Unchecked because of the weak reference: weak loads are thread-safe, and the tracker
+    // only reads it to check whether the instance was deallocated, never to use it.
+    private struct TrackedInstance: @unchecked Sendable {
         weak var instance: AnyObject?
         let typeName: String
         let sourceLocation: SourceLocation
