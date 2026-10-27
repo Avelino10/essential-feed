@@ -7,6 +7,6 @@
 
 import Foundation
 
-public protocol FeedImageDataLoader {
+public protocol FeedImageDataLoader: Sendable {
     func loadImageData(from url: URL) async throws -> Data
 }

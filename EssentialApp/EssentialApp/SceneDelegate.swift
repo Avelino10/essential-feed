@@ -46,7 +46,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
             selection: showComments))
 
     private lazy var localFeedLoader: LocalFeedLoader = {
-        LocalFeedLoader(store: store, currentDate: Date.init)
+        LocalFeedLoader(store: store, currentDate: { Date() })
     }()
 
     private lazy var baseURL = URL(string: "https://ile-api.essentialdeveloper.com/essential-feed")!

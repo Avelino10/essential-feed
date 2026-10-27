@@ -137,7 +137,7 @@ struct LoadFeedFromCacheUseCaseTests {
 
     // MARK: - Helpers
 
-    private func makeSUT(currentDate: @escaping () -> Date = Date.init) -> (sut: LocalFeedLoader, store: FeedStoreSpy) {
+    private func makeSUT(currentDate: @escaping @Sendable () -> Date = { Date() }) -> (sut: LocalFeedLoader, store: FeedStoreSpy) {
         let store = FeedStoreSpy()
         let sut = LocalFeedLoader(store: store, currentDate: currentDate)
         trackForMemoryLeaks(store)

@@ -9,7 +9,7 @@ import Foundation
 
 public typealias CachedFeed = (feed: [LocalFeedImage], timestamp: Date)
 
-public protocol FeedStore {
+public protocol FeedStore: Sendable {
     func deleteCachedFeed() async throws
     func insert(_ feed: [LocalFeedImage], timestamp: Date) async throws
     func retrieve() async throws -> CachedFeed?
