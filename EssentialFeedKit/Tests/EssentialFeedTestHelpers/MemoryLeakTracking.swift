@@ -8,7 +8,7 @@
 import Synchronization
 import Testing
 
-/// Records an issue for every tracked instance that is still alive when `verifyNoLeaks()` runs.
+/// Records an issue for every tracked instance that is still alive when `verifyNoLeaks(within:)` runs.
 public final class MemoryLeakTracker: Sendable {
     // Unchecked because of the weak reference: weak loads are thread-safe, and the tracker
     // only reads it to check whether the instance was deallocated, never to use it.
@@ -33,15 +33,24 @@ public final class MemoryLeakTracker: Sendable {
         trackedInstances.withLock { $0.append(trackedInstance) }
     }
 
-    public func verifyNoLeaks() {
-        let leakedInstances = trackedInstances.withLock { instances in
-            instances.filter { $0.instance != nil }
+    /// Instances released through an autorelease pool, or by a task winding down, go away
+    /// on a later run loop turn, so they get `gracePeriod` before being reported.
+    public func verifyNoLeaks(within gracePeriod: Duration = .seconds(1)) async {
+        let deadline = ContinuousClock.now + gracePeriod
+        while !leakedInstances().isEmpty, ContinuousClock.now < deadline {
+            try? await Task.sleep(for: .milliseconds(5))
         }
 
-        for leakedInstance in leakedInstances {
+        for leakedInstance in leakedInstances() {
             Issue.record(
                 "\(leakedInstance.typeName) should have been deallocated. Potential memory leak.",
                 sourceLocation: leakedInstance.sourceLocation)
+        }
+    }
+
+    private func leakedInstances() -> [TrackedInstance] {
+        trackedInstances.withLock { instances in
+            instances.filter { $0.instance != nil }
         }
     }
 }
@@ -59,7 +68,7 @@ public struct MemoryLeakTrackingTrait: TestTrait, SuiteTrait, TestScoping {
         try await MemoryLeakTracker.$current.withValue(tracker) {
             try await function()
         }
-        tracker.verifyNoLeaks()
+        await tracker.verifyNoLeaks()
     }
 }
 

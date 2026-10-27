@@ -5,7 +5,6 @@
 //  Created by Avelino Rodrigues on 27/10/2026.
 //
 
-import Combine
 import EssentialFeed
 import Foundation
 
@@ -70,8 +69,8 @@ struct FeedLoaders: Sendable {
     }
 
     private func makePage(items: [FeedImage], last: FeedImage?) -> Paginated<FeedImage> {
-        Paginated(items: items, loadMorePublisher: last.map { last in
-            { asyncPublisher { try await loadMore(after: last) } }
+        Paginated(items: items, loadMore: last.map { last in
+            { @Sendable in try await loadMore(after: last) }
         })
     }
 }

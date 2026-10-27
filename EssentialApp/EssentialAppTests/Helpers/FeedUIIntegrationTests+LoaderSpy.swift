@@ -5,92 +5,107 @@
 //  Created by Avelino Rodrigues on 18/08/2021.
 //
 
-import Combine
 import EssentialFeed
 import EssentialFeediOS
 import EssentialFeedTestHelpers
 import Foundation
 
 extension FeedUIIntegrationTests {
-    class LoaderSpy {
+    /// Every read and completion first lets the UI's loading tasks run, then
+    /// completions let the UI handle the result before the test carries on.
+    @MainActor
+    final class LoaderSpy {
         // MARK: - FeedLoader
 
-        private var feedRequests = [PassthroughSubject<Paginated<FeedImage>, Error>]()
+        private let feedRequests = PendingRequests<Paginated<FeedImage>>()
 
         var loadFeedCallCount: Int {
-            feedRequests.count
+            get async {
+                await settle()
+                return feedRequests.count
+            }
         }
 
-        func loadPublisher() -> AnyPublisher<Paginated<FeedImage>, Error> {
-            let publisher = PassthroughSubject<Paginated<FeedImage>, Error>()
-            feedRequests.append(publisher)
-            return publisher.eraseToAnyPublisher()
+        func loadFeed() async throws -> Paginated<FeedImage> {
+            try await feedRequests.load()
         }
 
-        func completeFeedLoadingWithError(at index: Int = 0) {
-            feedRequests[index].send(completion: .failure(anyNSError()))
+        func completeFeedLoadingWithError(at index: Int = 0) async {
+            await settle()
+            feedRequests.fail(with: anyNSError(), at: index)
+            await settle()
         }
 
-        func completeFeedLoading(with feed: [FeedImage] = [], at index: Int = 0) {
-            feedRequests[index].send(Paginated(items: feed, loadMorePublisher: { [weak self] in
-                self?.loadMorePublisher() ?? Empty().eraseToAnyPublisher()
-            }))
-
-            feedRequests[index].send(completion: .finished)
+        func completeFeedLoading(with feed: [FeedImage] = [], at index: Int = 0) async {
+            await settle()
+            feedRequests.complete(with: makePage(feed), at: index)
+            await settle()
         }
 
         // MARK: - LoadMoreFeedLoader
 
-        private var loadMoreRequests = [PassthroughSubject<Paginated<FeedImage>, Error>]()
+        private let loadMoreRequests = PendingRequests<Paginated<FeedImage>>()
 
         var loadMoreCallCount: Int {
-            loadMoreRequests.count
+            get async {
+                await settle()
+                return loadMoreRequests.count
+            }
         }
 
-        func loadMorePublisher() -> AnyPublisher<Paginated<FeedImage>, Error> {
-            let publisher = PassthroughSubject<Paginated<FeedImage>, Error>()
-            loadMoreRequests.append(publisher)
-            return publisher.eraseToAnyPublisher()
+        func completeLoadMore(with feed: [FeedImage] = [], lastPage: Bool = false, at index: Int = 0) async {
+            await settle()
+            loadMoreRequests.complete(with: makePage(feed, lastPage: lastPage), at: index)
+            await settle()
         }
 
-        func completeLoadMore(with feed: [FeedImage] = [], lastPage: Bool = false, at index: Int = 0) {
-            loadMoreRequests[index].send(Paginated(
-                items: feed,
-                loadMorePublisher: lastPage ? nil : { [weak self] in
-                    self?.loadMorePublisher() ?? Empty().eraseToAnyPublisher()
-                }))
+        func completeLoadMoreWithError(at index: Int = 0) async {
+            await settle()
+            loadMoreRequests.fail(with: anyNSError(), at: index)
+            await settle()
         }
 
-        func completeLoadMoreWithError(at index: Int = 0) {
-            loadMoreRequests[index].send(completion: .failure(anyNSError()))
+        private func makePage(_ feed: [FeedImage], lastPage: Bool = false) -> Paginated<FeedImage> {
+            Paginated(items: feed, loadMore: lastPage ? nil : { @Sendable [weak self] in
+                guard let self else { throw CancellationError() }
+                return try await loadMoreRequests.load()
+            })
         }
 
         // MARK: - FeedImageDataLoader
 
-        private var imageRequests = [(url: URL, publisher: PassthroughSubject<Data, Error>)]()
+        private let imageRequests = PendingRequests<Data>()
+        private var requestedImageURLs = [URL]()
 
         var loadedImageURLs: [URL] {
-            imageRequests.map { $0.url }
+            get async {
+                await settle()
+                return requestedImageURLs
+            }
         }
 
-        private(set) var cancelledImageURLs = [URL]()
-
-        func loadImageDataPublisher(from url: URL) -> AnyPublisher<Data, Error> {
-            let publisher = PassthroughSubject<Data, Error>()
-            imageRequests.append((url, publisher))
-
-            return publisher.handleEvents(receiveCancel: { [weak self] in
-                self?.cancelledImageURLs.append(url)
-            }).eraseToAnyPublisher()
+        var cancelledImageURLs: [URL] {
+            get async {
+                await settle()
+                return imageRequests.cancelledIndices.map { requestedImageURLs[$0] }
+            }
         }
 
-        func completeImageLoading(with imageData: Data = Data(), at index: Int = 0) {
-            imageRequests[index].publisher.send(imageData)
-            imageRequests[index].publisher.send(completion: .finished)
+        func loadImageData(from url: URL) async throws -> Data {
+            requestedImageURLs.append(url)
+            return try await imageRequests.load()
         }
 
-        func completeImageLoadingWithError(at index: Int = 0) {
-            imageRequests[index].publisher.send(completion: .failure(anyNSError()))
+        func completeImageLoading(with imageData: Data = Data(), at index: Int = 0) async {
+            await settle()
+            imageRequests.complete(with: imageData, at: index)
+            await settle()
+        }
+
+        func completeImageLoadingWithError(at index: Int = 0) async {
+            await settle()
+            imageRequests.fail(with: anyNSError(), at: index)
+            await settle()
         }
     }
 }

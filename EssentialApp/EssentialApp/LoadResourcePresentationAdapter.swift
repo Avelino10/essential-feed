@@ -5,45 +5,46 @@
 //  Created by Avelino Rodrigues on 23/08/2021.
 //
 
-import Combine
 import EssentialFeed
 import EssentialFeediOS
 
 @MainActor
 final class LoadResourcePresentationAdapter<Resource, View: ResourceView> {
-    private let loader: () -> AnyPublisher<Resource, Error>
-    private var cancellable: Cancellable?
-    private var isLoading = false
-
+    private let loader: () async throws -> Resource
+    // Only used on the main actor, and by deinit once nothing else can reach the adapter.
+    nonisolated(unsafe) private var loading: Task<Void, Never>?
     var presenter: LoadResourcePresenter<Resource, View>?
 
-    init(loader: @escaping () -> AnyPublisher<Resource, Error>) {
+    init(loader: @escaping () async throws -> Resource) {
         self.loader = loader
     }
 
+    deinit {
+        loading?.cancel()
+    }
+
     func loadResource() {
-        guard !isLoading else { return }
+        guard loading == nil else { return }
 
         presenter?.didStartLoading()
-        isLoading = true
 
-        cancellable = loader()
-            .dispatchOnMainQueue()
-            .handleEvents(receiveCancel: { [weak self] in
-                self?.isLoading = false
-            })
-            .sink(
-                receiveCompletion: { [weak self] completion in
-                    switch completion {
-                        case .finished: break
-                        case let .failure(error):
-                            self?.presenter?.didFinishLoading(with: error)
-                    }
+        let loader = self.loader
+        loading = Task { [weak self] in
+            do {
+                let resource = try await loader()
+                guard !Task.isCancelled else { return }
+                self?.presenter?.didFinishLoading(with: resource)
+            } catch {
+                guard !Task.isCancelled else { return }
+                self?.presenter?.didFinishLoading(with: error)
+            }
+            self?.loading = nil
+        }
+    }
 
-                    self?.isLoading = false
-                }, receiveValue: { [weak self] resource in
-                    self?.presenter?.didFinishLoading(with: resource)
-                })
+    func cancel() {
+        loading?.cancel()
+        loading = nil
     }
 }
 
@@ -53,7 +54,6 @@ extension LoadResourcePresentationAdapter: FeedImageCellControllerDelegate {
     }
 
     func didCancelRequestImage() {
-        cancellable?.cancel()
-        cancellable = nil
+        cancel()
     }
 }
