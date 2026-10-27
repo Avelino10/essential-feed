@@ -12,45 +12,45 @@ import Testing
 
 @Suite(.trackingMemoryLeaks)
 struct LoadFeedImageDataFromCacheUseCaseTests {
-    @Test func `Init does not message store upon creation`() {
+    @Test func `Init does not message store upon creation`() async {
         let (_, store) = makeSUT()
 
         #expect(store.receivedMessages.isEmpty)
     }
 
-    @Test func `Load image data from URL requests stored data for URL`() {
+    @Test func `Load image data from URL requests stored data for URL`() async {
         let (sut, store) = makeSUT()
         let url = anyURL()
 
-        _ = try? sut.loadImageData(from: url)
+        _ = try? await sut.loadImageData(from: url)
 
         #expect(store.receivedMessages == [.retrieve(dataFor: url)])
     }
 
-    @Test func `Load image data fails on store error`() {
+    @Test func `Load image data fails on store error`() async {
         let (sut, store) = makeSUT()
         store.completeRetrieval(with: anyNSError())
 
-        #expect(throws: LocalFeedImageDataLoader.LoadError.failed) {
-            try sut.loadImageData(from: anyURL())
+        await #expect(throws: LocalFeedImageDataLoader.LoadError.failed) {
+            try await sut.loadImageData(from: anyURL())
         }
     }
 
-    @Test func `Load image data delivers not found error on not found`() {
+    @Test func `Load image data delivers not found error on not found`() async {
         let (sut, store) = makeSUT()
         store.completeRetrieval(with: .none)
 
-        #expect(throws: LocalFeedImageDataLoader.LoadError.notFound) {
-            try sut.loadImageData(from: anyURL())
+        await #expect(throws: LocalFeedImageDataLoader.LoadError.notFound) {
+            try await sut.loadImageData(from: anyURL())
         }
     }
 
-    @Test func `Load image data delivers stored data on found data`() throws {
+    @Test func `Load image data delivers stored data on found data`() async throws {
         let (sut, store) = makeSUT()
         let foundData = anyData()
         store.completeRetrieval(with: foundData)
 
-        let receivedData = try sut.loadImageData(from: anyURL())
+        let receivedData = try await sut.loadImageData(from: anyURL())
 
         #expect(receivedData == foundData)
     }
