@@ -5,9 +5,9 @@
 //  Created by Avelino Rodrigues on 09/09/2021.
 //
 
-import Combine
 import CoreData
 import EssentialFeed
+import EssentialFeediOS
 import os
 import UIKit
 
@@ -33,11 +33,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         }
     }()
 
-    private lazy var navigationController = UINavigationController(
-        rootViewController: FeedUIComposer.feedComposedWith(
-            feedLoader: makeRemoteFeedLoaderWithLocalFallback,
-            imageLoader: makeLocalImageLoaderWithRemoteFallback,
-            selection: showComments))
+    private lazy var navigationController = UINavigationController(rootViewController: makeFeedViewController())
 
     private lazy var localFeedLoader: LocalFeedLoader = {
         LocalFeedLoader(store: store, currentDate: { Date() })
@@ -83,23 +79,24 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         }
     }
 
+    private func makeFeedViewController() -> ListViewController {
+        FeedUIComposer.feedComposedWith(
+            feedLoader: { [feedLoaders] in try await feedLoaders.loadFirstPage() },
+            imageLoader: { [feedLoaders] in try await feedLoaders.loadImageData(from: $0) },
+            // Strong on purpose: the screens keep the composition, and its navigation
+            // controller, alive. The scene delegate lives as long as its scene anyway.
+            selection: { self.showComments(for: $0) })
+    }
+
     private func showComments(for image: FeedImage) {
         let url = ImageCommentsEndpoint.get(image.id).url(baseURL: baseURL)
         let comments = CommentsUIComposer.commentsComposedWith(commentsLoader: makeRemoteCommentsLoader(url: url))
         navigationController.pushViewController(comments, animated: true)
     }
 
-    private func makeRemoteCommentsLoader(url: URL) -> () -> AnyPublisher<[ImageComment], Error> {
+    private func makeRemoteCommentsLoader(url: URL) -> () async throws -> [ImageComment] {
         return { [feedLoaders] in
-            asyncPublisher { try await feedLoaders.loadComments(from: url) }
+            try await feedLoaders.loadComments(from: url)
         }
-    }
-
-    private func makeRemoteFeedLoaderWithLocalFallback() -> AnyPublisher<Paginated<FeedImage>, Error> {
-        asyncPublisher { [feedLoaders] in try await feedLoaders.loadFirstPage() }
-    }
-
-    private func makeLocalImageLoaderWithRemoteFallback(url: URL) -> AnyPublisher<Data, Error> {
-        asyncPublisher { [feedLoaders] in try await feedLoaders.loadImageData(from: url) }
     }
 }

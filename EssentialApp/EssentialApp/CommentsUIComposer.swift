@@ -5,7 +5,6 @@
 //  Created by Avelino Rodrigues on 08/01/2022.
 //
 
-import Combine
 import EssentialFeed
 import EssentialFeediOS
 import UIKit
@@ -17,7 +16,7 @@ public final class CommentsUIComposer {
     private typealias CommentsPresentationAdapter = LoadResourcePresentationAdapter<[ImageComment], CommmentsViewAdapter>
 
     public static func commentsComposedWith(
-        commentsLoader: @escaping () -> AnyPublisher<[ImageComment], Error>
+        commentsLoader: @escaping () async throws -> [ImageComment]
     ) -> ListViewController {
         let presentationAdapter = CommentsPresentationAdapter(loader: commentsLoader)
 

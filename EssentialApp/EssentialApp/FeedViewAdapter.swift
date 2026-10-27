@@ -5,21 +5,20 @@
 //  Created by Avelino Rodrigues on 23/08/2021.
 //
 
-import Combine
 import EssentialFeed
 import EssentialFeediOS
 import UIKit
 
 final class FeedViewAdapter: ResourceView {
     private weak var controller: ListViewController?
-    private let imageLoader: (URL) -> AnyPublisher<Data, Error>
-    private let selection: (FeedImage) -> Void
+    private let imageLoader: (URL) async throws -> Data
+    private let selection: @MainActor (FeedImage) -> Void
     private let currentFeed: [FeedImage: CellController]
 
     private typealias ImageDataPresentationAdapter = LoadResourcePresentationAdapter<Data, WeakRefVirtualProxy<FeedImageCellController>>
     private typealias LoadMorePresentationAdapter = LoadResourcePresentationAdapter<Paginated<FeedImage>, FeedViewAdapter>
 
-    init(currentFeed: [FeedImage: CellController] = [:], controller: ListViewController, imageLoader: @escaping (URL) -> AnyPublisher<Data, Error>, selection: @escaping (FeedImage) -> Void) {
+    init(currentFeed: [FeedImage: CellController] = [:], controller: ListViewController, imageLoader: @escaping (URL) async throws -> Data, selection: @escaping @MainActor (FeedImage) -> Void) {
         self.currentFeed = currentFeed
         self.controller = controller
         self.imageLoader = imageLoader
@@ -36,7 +35,7 @@ final class FeedViewAdapter: ResourceView {
             }
 
             let adapter = ImageDataPresentationAdapter(loader: { [imageLoader] in
-                imageLoader(model.url)
+                try await imageLoader(model.url)
             })
 
             let view = FeedImageCellController(
@@ -63,13 +62,13 @@ final class FeedViewAdapter: ResourceView {
             return controller
         }
 
-        guard let loadMorePublisher = viewModel.loadMorePublisher else {
+        guard let loadMore = viewModel.loadMore else {
             controller.display(feed)
             return
         }
 
-        let loadMoreAdapter = LoadMorePresentationAdapter(loader: loadMorePublisher)
-        let loadMore = LoadMoreCellController(callback: loadMoreAdapter.loadResource)
+        let loadMoreAdapter = LoadMorePresentationAdapter(loader: loadMore)
+        let loadMoreController = LoadMoreCellController(callback: loadMoreAdapter.loadResource)
 
         loadMoreAdapter.presenter = LoadResourcePresenter(
             resourceView: FeedViewAdapter(
@@ -78,11 +77,11 @@ final class FeedViewAdapter: ResourceView {
                 imageLoader: imageLoader,
                 selection: selection
             ),
-            loadingView: WeakRefVirtualProxy(loadMore),
-            errorView: WeakRefVirtualProxy(loadMore),
+            loadingView: WeakRefVirtualProxy(loadMoreController),
+            errorView: WeakRefVirtualProxy(loadMoreController),
             mapper: { $0 })
 
-        let loadMoreSection = [CellController(id: UUID(), loadMore)]
+        let loadMoreSection = [CellController(id: UUID(), loadMoreController)]
 
         controller.display(feed, loadMoreSection)
     }

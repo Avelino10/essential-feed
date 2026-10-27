@@ -17,8 +17,10 @@ extension UIView {
             }
         }
 
+        // The mask is the shimmer: Core Animation drops the animation itself from views
+        // outside a window, so it doesn't say whether shimmering was asked for.
         get {
-            return layer.mask?.animation(forKey: shimmerAnimationKey) != nil
+            return layer.mask != nil
         }
     }
 
