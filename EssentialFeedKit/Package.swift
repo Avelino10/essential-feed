@@ -12,6 +12,7 @@ let package = Package(
     products: [
         .library(name: "EssentialFeed", targets: ["EssentialFeed"]),
         .library(name: "EssentialFeediOS", targets: ["EssentialFeediOS"]),
+        .library(name: "EssentialFeedTestHelpers", targets: ["EssentialFeedTestHelpers"]),
     ],
     targets: [
         .target(name: "EssentialFeed"),
