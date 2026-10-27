@@ -7,7 +7,7 @@
 
 import CoreData
 
-public final class CoreDataFeedStore {
+public final class CoreDataFeedStore: Sendable {
     private static let modelName = "FeedStore"
     // A loaded model is immutable, so sharing it between stores is safe.
     nonisolated(unsafe) private static let model = NSManagedObjectModel.with(name: modelName, in: .essentialFeed)

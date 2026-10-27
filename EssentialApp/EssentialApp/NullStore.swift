@@ -8,7 +8,7 @@
 import EssentialFeed
 import Foundation
 
-class NullStore {}
+final class NullStore: Sendable {}
 
 extension NullStore: FeedStore {
     func deleteCachedFeed() throws {}

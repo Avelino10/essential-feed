@@ -7,7 +7,7 @@
 
 import Foundation
 
-public protocol FeedImageDataStore {
+public protocol FeedImageDataStore: Sendable {
     func insert(_ data: Data, for url: URL) async throws
     func retrieve(dataForURL url: URL) async throws -> Data?
 }

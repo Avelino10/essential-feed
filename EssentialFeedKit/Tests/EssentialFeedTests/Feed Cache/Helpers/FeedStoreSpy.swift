@@ -8,7 +8,8 @@
 import EssentialFeed
 import Foundation
 
-class FeedStoreSpy: FeedStore {
+// Unchecked: each test uses its spy from the test's own task, one step at a time.
+final class FeedStoreSpy: FeedStore, @unchecked Sendable {
     enum ReceivedMessages: Equatable {
         case deleteCachedFeed
         case insert([LocalFeedImage], Date)

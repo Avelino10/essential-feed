@@ -7,6 +7,6 @@
 
 import Foundation
 
-public protocol FeedImageDataCache {
+public protocol FeedImageDataCache: Sendable {
     func save(_ data: Data, for url: URL) async throws
 }

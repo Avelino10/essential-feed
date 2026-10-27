@@ -7,6 +7,6 @@
 
 import Foundation
 
-public protocol FeedCache {
+public protocol FeedCache: Sendable {
     func save(_ feed: [FeedImage]) async throws
 }
