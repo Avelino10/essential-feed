@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct ResourceErrorViewModel {
+public struct ResourceErrorViewModel: Sendable {
     public let message: String?
 
     static var noError: ResourceErrorViewModel {

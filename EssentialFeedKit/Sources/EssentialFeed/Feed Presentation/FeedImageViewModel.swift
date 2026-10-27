@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct FeedImageViewModel {
+public struct FeedImageViewModel: Sendable {
     public let description: String?
     public let location: String?
 

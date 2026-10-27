@@ -7,12 +7,14 @@
 
 import Foundation
 
+@MainActor
 public protocol ResourceView {
     associatedtype ResourceViewModel
 
     func display(_ viewModel: ResourceViewModel)
 }
 
+@MainActor
 public final class LoadResourcePresenter<Resource, View: ResourceView> {
     public typealias Mapper = (Resource) throws -> View.ResourceViewModel
     private let resourceView: View
@@ -20,7 +22,7 @@ public final class LoadResourcePresenter<Resource, View: ResourceView> {
     private let loadingView: ResourceLoadingView
     private let mapper: Mapper
 
-    public static var loadError: String {
+    public nonisolated static var loadError: String {
         NSLocalizedString(
             "GENERIC_CONNECTION_ERROR",
             tableName: "Shared",
