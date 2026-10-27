@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		393849FA03C28A309BF30CE8 /* EssentialFeedTestHelpers in Frameworks */ = {isa = PBXBuildFile; productRef = D0F1D6E6DB850AA61983CC79 /* EssentialFeedTestHelpers */; };
 		87E694A06703ABD1B3B48D37 /* EssentialFeed in Frameworks */ = {isa = PBXBuildFile; productRef = A6F6663288F921C6F69F6638 /* EssentialFeed */; };
 		EB331682BC2647CB483B44B5 /* EssentialFeediOS in Frameworks */ = {isa = PBXBuildFile; productRef = CC844770B215CA629871328D /* EssentialFeediOS */; };
 		FD05C6692736A64D00D578BE /* CombineHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD05C6682736A64D00D578BE /* CombineHelpers.swift */; };
@@ -94,6 +95,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				393849FA03C28A309BF30CE8 /* EssentialFeedTestHelpers in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -206,6 +208,9 @@
 				FDEA9DDC26EA14E900A38305 /* PBXTargetDependency */,
 			);
 			name = EssentialAppTests;
+			packageProductDependencies = (
+				D0F1D6E6DB850AA61983CC79 /* EssentialFeedTestHelpers */,
+			);
 			productName = EssentialAppTests;
 			productReference = FDEA9DDA26EA14E900A38305 /* EssentialAppTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
@@ -579,6 +584,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 73D211CCC5530E3110D56635 /* XCLocalSwiftPackageReference "EssentialFeedKit" */;
 			productName = EssentialFeediOS;
+		};
+		D0F1D6E6DB850AA61983CC79 /* EssentialFeedTestHelpers */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 73D211CCC5530E3110D56635 /* XCLocalSwiftPackageReference "EssentialFeedKit" */;
+			productName = EssentialFeedTestHelpers;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
