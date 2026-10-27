@@ -9,139 +9,142 @@ import Combine
 import EssentialApp
 import EssentialFeed
 import EssentialFeediOS
-import XCTest
+import EssentialFeedTestHelpers
+import Foundation
+import Testing
 
-class CommentsUIIntegrationTests: XCTestCase {
-    func test_commentsView_hasTitle() {
+@MainActor
+@Suite(.trackingMemoryLeaks)
+struct CommentsUIIntegrationTests {
+    @Test func `Comments view has title`() {
         let (sut, _) = makeSUT()
 
         sut.simulateAppearance()
 
-        XCTAssertEqual(sut.title, commentsTitle)
+        #expect(sut.title == commentsTitle)
     }
 
-    func test_loadCommentsActions_requestCommentsFromLoader() {
+    @Test func `Load comments actions request comments from loader`() {
         let (sut, loader) = makeSUT()
-        XCTAssertEqual(loader.loadCommentsCallCount, 0, "Expected no loading requests before view is loaded")
+        #expect(loader.loadCommentsCallCount == 0, "Expected no loading requests before view is loaded")
 
         sut.simulateAppearance()
-        XCTAssertEqual(loader.loadCommentsCallCount, 1, "Expected a loading request once view is loaded")
+        #expect(loader.loadCommentsCallCount == 1, "Expected a loading request once view is loaded")
 
         sut.simulateUserInitiatedReload()
-        XCTAssertEqual(loader.loadCommentsCallCount, 1, "Expected no request until previous completes")
+        #expect(loader.loadCommentsCallCount == 1, "Expected no request until previous completes")
 
         loader.completeCommentsLoading(at: 0)
 
         sut.simulateUserInitiatedReload()
-        XCTAssertEqual(loader.loadCommentsCallCount, 2, "Expected another loading request once user initiated a load")
+        #expect(loader.loadCommentsCallCount == 2, "Expected another loading request once user initiated a load")
 
         loader.completeCommentsLoading(at: 1)
         sut.simulateUserInitiatedReload()
-        XCTAssertEqual(loader.loadCommentsCallCount, 3, "Expected a third loading request once user initiated another load")
+        #expect(loader.loadCommentsCallCount == 3, "Expected a third loading request once user initiated another load")
     }
 
-    func test_loadingCommentsIndicator_isVisibleWhileLoadingComments() {
+    @Test func `Loading comments indicator is visible while loading comments`() {
         let (sut, loader) = makeSUT()
 
         sut.simulateAppearance()
-        XCTAssertTrue(sut.isShowingLoadingIndicator, "Expected loading indicator once view is loaded")
+        #expect(sut.isShowingLoadingIndicator, "Expected loading indicator once view is loaded")
 
         loader.completeCommentsLoading(at: 0)
-        XCTAssertFalse(sut.isShowingLoadingIndicator, "Expected no loading indicator once loading completes successfully")
+        #expect(!sut.isShowingLoadingIndicator, "Expected no loading indicator once loading completes successfully")
 
         sut.simulateUserInitiatedReload()
-        XCTAssertTrue(sut.isShowingLoadingIndicator, "Expected loading indicator once user initiated a reload")
+        #expect(sut.isShowingLoadingIndicator, "Expected loading indicator once user initiated a reload")
 
         loader.completeCommentsLoadingWithError(at: 1)
-        XCTAssertFalse(sut.isShowingLoadingIndicator, "Expected no loading indicator once user initiated loading completes with error")
+        #expect(!sut.isShowingLoadingIndicator, "Expected no loading indicator once user initiated loading completes with error")
     }
 
-    func test_loadCommentsCompletion_rendersSuccessfullyLoadedComments() {
+    @Test func `Load comments completion renders successfully loaded comments`() {
         let comment0 = makeComment(message: "a message", username: "a username")
         let comment1 = makeComment(message: "another message", username: "another username")
         let (sut, loader) = makeSUT()
 
         sut.simulateAppearance()
-        assertThat(sut, isRendering: [ImageComment]())
+        expect(sut, isRendering: [ImageComment]())
 
         loader.completeCommentsLoading(with: [comment0], at: 0)
-        assertThat(sut, isRendering: [comment0])
+        expect(sut, isRendering: [comment0])
 
         sut.simulateUserInitiatedReload()
         loader.completeCommentsLoading(with: [comment0, comment1], at: 1)
-        assertThat(sut, isRendering: [comment0, comment1])
+        expect(sut, isRendering: [comment0, comment1])
     }
 
-    func test_loadCommentsCompletion_rendersSuccessfullyLoadedEmptyCommentsAfterNonEmptyComments() {
+    @Test func `Load comments completion renders successfully loaded empty comments after non-empty comments`() {
         let comment = makeComment()
         let (sut, loader) = makeSUT()
 
         sut.simulateAppearance()
-        assertThat(sut, isRendering: [ImageComment]())
+        expect(sut, isRendering: [ImageComment]())
 
         loader.completeCommentsLoading(with: [comment], at: 0)
-        assertThat(sut, isRendering: [comment])
+        expect(sut, isRendering: [comment])
 
         sut.simulateUserInitiatedReload()
         loader.completeCommentsLoading(with: [], at: 1)
-        assertThat(sut, isRendering: [ImageComment]())
+        expect(sut, isRendering: [ImageComment]())
     }
 
-    func test_loadCommentsCompletion_doesNotAlterCurrentRenderingStateOnError() {
+    @Test func `Load comments completion does not alter current rendering state on error`() {
         let comment = makeComment()
         let (sut, loader) = makeSUT()
 
         sut.simulateAppearance()
         loader.completeCommentsLoading(with: [comment], at: 0)
-        assertThat(sut, isRendering: [comment])
+        expect(sut, isRendering: [comment])
 
         sut.simulateUserInitiatedReload()
         loader.completeCommentsLoadingWithError(at: 1)
-        assertThat(sut, isRendering: [comment])
+        expect(sut, isRendering: [comment])
     }
 
-    func test_loadCommentsCompletion_dispatchesFromBackgroundToMainThread() {
+    @Test func `Load comments completion dispatches from background to main thread`() async {
         let (sut, loader) = makeSUT()
 
         sut.simulateAppearance()
 
-        let exp = expectation(description: "Wait for background queue")
-        DispatchQueue.global().async {
-            loader.completeCommentsLoading(at: 0)
-            exp.fulfill()
+        await withCheckedContinuation { continuation in
+            DispatchQueue.global().async {
+                loader.completeCommentsLoading(at: 0)
+                continuation.resume()
+            }
         }
-
-        wait(for: [exp], timeout: 1.0)
     }
 
-    func test_loadCommentsCompletion_rendersErrorMessageOnErrorUntilNextReload() {
+    @Test func `Load comments completion renders error message on error until next reload`() {
         let (sut, loader) = makeSUT()
 
         sut.simulateAppearance()
 
-        XCTAssertEqual(sut.errorMessage, nil)
+        #expect(sut.errorMessage == nil)
 
         loader.completeCommentsLoadingWithError(at: 0)
-        XCTAssertEqual(sut.errorMessage, loadError)
+        #expect(sut.errorMessage == loadError)
 
         sut.simulateUserInitiatedReload()
-        XCTAssertEqual(sut.errorMessage, nil)
+        #expect(sut.errorMessage == nil)
     }
 
-    func test_tapOnErrorView_hidesErrorMessage() {
+    @Test func `Tap on error view hides error message`() {
         let (sut, loader) = makeSUT()
 
         sut.simulateAppearance()
-        XCTAssertEqual(sut.errorMessage, nil)
+        #expect(sut.errorMessage == nil)
 
         loader.completeCommentsLoadingWithError(at: 0)
-        XCTAssertEqual(sut.errorMessage, loadError)
+        #expect(sut.errorMessage == loadError)
 
         sut.simulateErrorViewTap()
-        XCTAssertEqual(sut.errorMessage, nil)
+        #expect(sut.errorMessage == nil)
     }
 
-    func test_deinit_cancelsRunningRequest() {
+    @Test func `Deinit cancels running request`() {
         var cancelCallCount = 0
 
         var sut: ListViewController?
@@ -157,20 +160,20 @@ class CommentsUIIntegrationTests: XCTestCase {
             sut?.simulateAppearance()
         }
 
-        XCTAssertEqual(cancelCallCount, 0)
+        #expect(cancelCallCount == 0)
 
         sut = nil
-        XCTAssertEqual(cancelCallCount, 1)
+        #expect(cancelCallCount == 1)
     }
 
     // MARK: - Helpers
 
-    private func makeSUT(file: StaticString = #filePath, line: UInt = #line) -> (sut: ListViewController, loader: LoaderSpy) {
+    private func makeSUT() -> (sut: ListViewController, loader: LoaderSpy) {
         let loader = LoaderSpy()
         let sut = CommentsUIComposer.commentsComposedWith(commentsLoader: loader.loadPublisher)
 
-        trackForMemoryLeaks(loader, file: file, line: line)
-        trackForMemoryLeaks(sut, file: file, line: line)
+        trackForMemoryLeaks(loader)
+        trackForMemoryLeaks(sut)
         return (sut, loader)
     }
 
@@ -178,15 +181,16 @@ class CommentsUIIntegrationTests: XCTestCase {
         ImageComment(id: UUID(), message: message, createdAt: Date(), username: username)
     }
 
-    private func assertThat(_ sut: ListViewController, isRendering comments: [ImageComment], file: StaticString = #filePath, line: UInt = #line) {
-        XCTAssertEqual(sut.numberOfRenderedComments(), comments.count, "comments count", file: file, line: line)
+    private func expect(_ sut: ListViewController, isRendering comments: [ImageComment], fileID: String = #fileID, filePath: String = #filePath, line: Int = #line, column: Int = #column) {
+        let sourceLocation = SourceLocation(fileID: fileID, filePath: filePath, line: line, column: column)
+        #expect(sut.numberOfRenderedComments() == comments.count, "comments count", sourceLocation: sourceLocation)
 
         let viewModel = ImageCommentsPresenter.map(comments)
 
-        viewModel.comments.enumerated().forEach { index, comment in
-            XCTAssertEqual(sut.commentMessage(at: index), comment.message, "message at \(index)", file: file, line: line)
-            XCTAssertEqual(sut.commentDate(at: index), comment.date, "date at \(index)", file: file, line: line)
-            XCTAssertEqual(sut.commentUsername(at: index), comment.username, "username at \(index)", file: file, line: line)
+        for (index, comment) in viewModel.comments.enumerated() {
+            #expect(sut.commentMessage(at: index) == comment.message, "message at \(index)", sourceLocation: sourceLocation)
+            #expect(sut.commentDate(at: index) == comment.date, "date at \(index)", sourceLocation: sourceLocation)
+            #expect(sut.commentUsername(at: index) == comment.username, "username at \(index)", sourceLocation: sourceLocation)
         }
     }
 
