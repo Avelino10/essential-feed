@@ -39,22 +39,28 @@ public extension HTTPClient {
     typealias Publisher = AnyPublisher<(Data, HTTPURLResponse), Error>
 
     func getPublisher(url: URL) -> Publisher {
-        var task: Task<Void, Never>?
+        asyncPublisher { try await self.get(from: url) }
+    }
+}
 
-        return Deferred {
-            Future { completion in
-                task = Task {
-                    do {
-                        completion(.success(try await self.get(from: url)))
-                    } catch {
-                        completion(.failure(error))
-                    }
+/// Bridges an async operation into Combine: the operation starts when the publisher is
+/// subscribed to and is cancelled when the subscription is.
+private func asyncPublisher<Output>(_ operation: @escaping () async throws -> Output) -> AnyPublisher<Output, Error> {
+    var task: Task<Void, Never>?
+
+    return Deferred {
+        Future { completion in
+            task = Task {
+                do {
+                    completion(.success(try await operation()))
+                } catch {
+                    completion(.failure(error))
                 }
             }
         }
-        .handleEvents(receiveCancel: { task?.cancel() })
-        .eraseToAnyPublisher()
     }
+    .handleEvents(receiveCancel: { task?.cancel() })
+    .eraseToAnyPublisher()
 }
 
 public extension FeedImageDataLoader {
@@ -90,12 +96,7 @@ public extension LocalFeedLoader {
     typealias Publisher = AnyPublisher<[FeedImage], Error>
 
     func loadPublisher() -> Publisher {
-        Deferred {
-            Future { completion in
-                completion(Result { try self.load() })
-            }
-        }
-        .eraseToAnyPublisher()
+        asyncPublisher { try await self.load() }
     }
 }
 
@@ -105,23 +106,33 @@ extension Publisher {
     }
 }
 
-extension Publisher {
+extension Publisher where Failure == Error {
+    /// Passes each value on once it has been saved, so the cache is up to date
+    /// by the time the UI shows it.
     func caching(to cache: FeedCache) -> AnyPublisher<Output, Failure> where Output == [FeedImage] {
-        handleEvents(receiveOutput: cache.saveIgnoringResult).eraseToAnyPublisher()
+        flatMap { feed in
+            asyncPublisher {
+                await cache.saveIgnoringResult(feed)
+                return feed
+            }
+        }
+        .eraseToAnyPublisher()
     }
 
     func caching(to cache: FeedCache) -> AnyPublisher<Output, Failure> where Output == Paginated<FeedImage> {
-        handleEvents(receiveOutput: cache.saveIgnoringResult).eraseToAnyPublisher()
+        flatMap { page in
+            asyncPublisher {
+                await cache.saveIgnoringResult(page.items)
+                return page
+            }
+        }
+        .eraseToAnyPublisher()
     }
 }
 
 private extension FeedCache {
-    func saveIgnoringResult(_ feed: [FeedImage]) {
-        try? save(feed)
-    }
-
-    func saveIgnoringResult(_ page: Paginated<FeedImage>) {
-        saveIgnoringResult(page.items)
+    func saveIgnoringResult(_ feed: [FeedImage]) async {
+        try? await save(feed)
     }
 }
 

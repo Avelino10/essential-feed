@@ -12,125 +12,125 @@ import Testing
 
 @Suite(.trackingMemoryLeaks)
 struct LoadFeedFromCacheUseCaseTests {
-    @Test func `Init does not message store upon creation`() {
+    @Test func `Init does not message store upon creation`() async {
         let (_, store) = makeSUT()
 
         #expect(store.receivedMessages == [])
     }
 
-    @Test func `Load requests cache retrieval`() {
+    @Test func `Load requests cache retrieval`() async {
         let (sut, store) = makeSUT()
 
-        _ = try? sut.load()
+        _ = try? await sut.load()
 
         #expect(store.receivedMessages == [.retrieve])
     }
 
-    @Test func `Load fails on retrieval error`() {
+    @Test func `Load fails on retrieval error`() async {
         let (sut, store) = makeSUT()
         let retrievalError = anyNSError()
         store.completeRetrieval(with: retrievalError)
 
-        #expect(throws: retrievalError) {
-            try sut.load()
+        await #expect(throws: retrievalError) {
+            try await sut.load()
         }
     }
 
-    @Test func `Load delivers no images on empty cache`() throws {
+    @Test func `Load delivers no images on empty cache`() async throws {
         let (sut, store) = makeSUT()
         store.completeRetrievalWithEmptyCache()
 
-        let images = try sut.load()
+        let images = try await sut.load()
 
         #expect(images == [])
     }
 
-    @Test func `Load delivers cached images on non-expired cache`() throws {
+    @Test func `Load delivers cached images on non-expired cache`() async throws {
         let feed = uniqueImageFeed()
         let fixedCurrentDate = Date()
         let nonExpiredTimestamp = fixedCurrentDate.minusFeedCacheMaxAge().adding(seconds: 1)
         let (sut, store) = makeSUT(currentDate: { fixedCurrentDate })
         store.completeRetrieval(with: feed.local, timestamp: nonExpiredTimestamp)
 
-        let images = try sut.load()
+        let images = try await sut.load()
 
         #expect(images == feed.models)
     }
 
-    @Test func `Load delivers no images on cache expiration`() throws {
+    @Test func `Load delivers no images on cache expiration`() async throws {
         let feed = uniqueImageFeed()
         let fixedCurrentDate = Date()
         let expirationTimestamp = fixedCurrentDate.minusFeedCacheMaxAge()
         let (sut, store) = makeSUT(currentDate: { fixedCurrentDate })
         store.completeRetrieval(with: feed.local, timestamp: expirationTimestamp)
 
-        let images = try sut.load()
+        let images = try await sut.load()
 
         #expect(images == [])
     }
 
-    @Test func `Load delivers no images on expired cache`() throws {
+    @Test func `Load delivers no images on expired cache`() async throws {
         let feed = uniqueImageFeed()
         let fixedCurrentDate = Date()
         let expiredTimestamp = fixedCurrentDate.minusFeedCacheMaxAge().adding(seconds: -1)
         let (sut, store) = makeSUT(currentDate: { fixedCurrentDate })
         store.completeRetrieval(with: feed.local, timestamp: expiredTimestamp)
 
-        let images = try sut.load()
+        let images = try await sut.load()
 
         #expect(images == [])
     }
 
-    @Test func `Load has no side effects on retrieval error`() {
+    @Test func `Load has no side effects on retrieval error`() async {
         let (sut, store) = makeSUT()
         store.completeRetrieval(with: anyNSError())
 
-        _ = try? sut.load()
+        _ = try? await sut.load()
 
         #expect(store.receivedMessages == [.retrieve])
     }
 
-    @Test func `Load has no side effects on empty cache`() {
+    @Test func `Load has no side effects on empty cache`() async {
         let (sut, store) = makeSUT()
         store.completeRetrievalWithEmptyCache()
 
-        _ = try? sut.load()
+        _ = try? await sut.load()
 
         #expect(store.receivedMessages == [.retrieve])
     }
 
-    @Test func `Load has no side effects on non-expired cache`() {
+    @Test func `Load has no side effects on non-expired cache`() async {
         let feed = uniqueImageFeed()
         let fixedCurrentDate = Date()
         let nonExpiredTimestamp = fixedCurrentDate.minusFeedCacheMaxAge().adding(seconds: 1)
         let (sut, store) = makeSUT(currentDate: { fixedCurrentDate })
         store.completeRetrieval(with: feed.local, timestamp: nonExpiredTimestamp)
 
-        _ = try? sut.load()
+        _ = try? await sut.load()
 
         #expect(store.receivedMessages == [.retrieve])
     }
 
-    @Test func `Load has no side effects on cache expiration`() {
+    @Test func `Load has no side effects on cache expiration`() async {
         let feed = uniqueImageFeed()
         let fixedCurrentDate = Date()
         let expirationTimestamp = fixedCurrentDate.minusFeedCacheMaxAge()
         let (sut, store) = makeSUT(currentDate: { fixedCurrentDate })
         store.completeRetrieval(with: feed.local, timestamp: expirationTimestamp)
 
-        _ = try? sut.load()
+        _ = try? await sut.load()
 
         #expect(store.receivedMessages == [.retrieve])
     }
 
-    @Test func `Load has no side effects on expired cache`() {
+    @Test func `Load has no side effects on expired cache`() async {
         let feed = uniqueImageFeed()
         let fixedCurrentDate = Date()
         let expiredTimestamp = fixedCurrentDate.minusFeedCacheMaxAge().adding(seconds: -1)
         let (sut, store) = makeSUT(currentDate: { fixedCurrentDate })
         store.completeRetrieval(with: feed.local, timestamp: expiredTimestamp)
 
-        _ = try? sut.load()
+        _ = try? await sut.load()
 
         #expect(store.receivedMessages == [.retrieve])
     }

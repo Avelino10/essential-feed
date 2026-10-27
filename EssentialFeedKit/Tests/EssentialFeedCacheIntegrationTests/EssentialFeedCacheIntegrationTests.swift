@@ -27,73 +27,73 @@ final class EssentialFeedCacheIntegrationTests {
 
     // MARK: - LocalFeedLoader Tests
 
-    @Test func `Load delivers no items on empty cache`() throws {
+    @Test func `Load delivers no items on empty cache`() async throws {
         let feedLoader = try makeFeedLoader()
 
-        #expect(try feedLoader.load() == [])
+        #expect(try await feedLoader.load() == [])
     }
 
-    @Test func `Load delivers items saved on a separate instance`() throws {
+    @Test func `Load delivers items saved on a separate instance`() async throws {
         let feedLoaderToPerformSave = try makeFeedLoader()
         let feedLoaderToPerformLoad = try makeFeedLoader()
         let feed = uniqueImageFeed().models
 
-        try feedLoaderToPerformSave.save(feed)
+        try await feedLoaderToPerformSave.save(feed)
 
-        #expect(try feedLoaderToPerformLoad.load() == feed)
+        #expect(try await feedLoaderToPerformLoad.load() == feed)
     }
 
-    @Test func `Save overrides items saved on a separate instance`() throws {
+    @Test func `Save overrides items saved on a separate instance`() async throws {
         let feedLoaderToPerformFirstSave = try makeFeedLoader()
         let feedLoaderToPerformLastSave = try makeFeedLoader()
         let feedLoaderToPerformLoad = try makeFeedLoader()
         let firstFeed = uniqueImageFeed().models
         let latestFeed = uniqueImageFeed().models
 
-        try feedLoaderToPerformFirstSave.save(firstFeed)
-        try feedLoaderToPerformLastSave.save(latestFeed)
+        try await feedLoaderToPerformFirstSave.save(firstFeed)
+        try await feedLoaderToPerformLastSave.save(latestFeed)
 
-        #expect(try feedLoaderToPerformLoad.load() == latestFeed)
+        #expect(try await feedLoaderToPerformLoad.load() == latestFeed)
     }
 
-    @Test func `Validate feed cache does not delete recently saved feed`() throws {
+    @Test func `Validate feed cache does not delete recently saved feed`() async throws {
         let feedLoaderToPerformSave = try makeFeedLoader()
         let feedLoaderToPerformValidation = try makeFeedLoader()
         let feed = uniqueImageFeed().models
 
-        try feedLoaderToPerformSave.save(feed)
-        try feedLoaderToPerformValidation.validateCache()
+        try await feedLoaderToPerformSave.save(feed)
+        try await feedLoaderToPerformValidation.validateCache()
 
-        #expect(try feedLoaderToPerformSave.load() == feed)
+        #expect(try await feedLoaderToPerformSave.load() == feed)
     }
 
-    @Test func `Validate feed cache deletes feed saved in a distant past`() throws {
+    @Test func `Validate feed cache deletes feed saved in a distant past`() async throws {
         let feedLoaderToPerformSave = try makeFeedLoader(currentDate: .distantPast)
         let feedLoaderToPerformValidation = try makeFeedLoader(currentDate: Date())
         let feed = uniqueImageFeed().models
 
-        try feedLoaderToPerformSave.save(feed)
-        try feedLoaderToPerformValidation.validateCache()
+        try await feedLoaderToPerformSave.save(feed)
+        try await feedLoaderToPerformValidation.validateCache()
 
-        #expect(try feedLoaderToPerformSave.load() == [])
+        #expect(try await feedLoaderToPerformSave.load() == [])
     }
 
     // MARK: - LocalFeedImageDataLoader Tests
 
-    @Test func `Load image data delivers saved data on a separate instance`() throws {
+    @Test func `Load image data delivers saved data on a separate instance`() async throws {
         let imageLoaderToPerformSave = try makeImageLoader()
         let imageLoaderToPerformLoad = try makeImageLoader()
         let feedLoader = try makeFeedLoader()
         let image = uniqueImage()
         let dataToSave = anyData()
 
-        try feedLoader.save([image])
+        try await feedLoader.save([image])
         try imageLoaderToPerformSave.save(dataToSave, for: image.url)
 
         #expect(try imageLoaderToPerformLoad.loadImageData(from: image.url) == dataToSave)
     }
 
-    @Test func `Save image data overrides saved image data on a separate instance`() throws {
+    @Test func `Save image data overrides saved image data on a separate instance`() async throws {
         let imageLoaderToPerformFirstSave = try makeImageLoader()
         let imageLoaderToPerformLastSave = try makeImageLoader()
         let imageLoaderToPerformLoad = try makeImageLoader()
@@ -102,7 +102,7 @@ final class EssentialFeedCacheIntegrationTests {
         let firstImageData = Data("first".utf8)
         let lastImageData = Data("last".utf8)
 
-        try feedLoader.save([image])
+        try await feedLoader.save([image])
         try imageLoaderToPerformFirstSave.save(firstImageData, for: image.url)
         try imageLoaderToPerformLastSave.save(lastImageData, for: image.url)
 

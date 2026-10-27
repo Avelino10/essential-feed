@@ -60,18 +60,18 @@ struct FeedAcceptanceTests {
         #expect(feed.numberOfRenderedFeedImageViews() == 0)
     }
 
-    @Test func `On entering background deletes expired feed cache`() throws {
+    @Test func `On entering background deletes expired feed cache`() async throws {
         let store = InMemoryFeedStore.withExpiredFeedCache
 
-        try enterBackground(with: store)
+        try await enterBackground(with: store)
 
         #expect(store.feedCache == nil, "Expected to delete expired cache")
     }
 
-    @Test func `On entering background keeps non-expired feed cache`() throws {
+    @Test func `On entering background keeps non-expired feed cache`() async throws {
         let store = InMemoryFeedStore.withNonExpiredFeedCache
 
-        try enterBackground(with: store)
+        try await enterBackground(with: store)
 
         #expect(store.feedCache != nil, "Expected to keep non-expired cache")
     }
@@ -123,10 +123,11 @@ struct FeedAcceptanceTests {
         }
     }
 
-    private func enterBackground(with store: InMemoryFeedStore) throws {
+    private func enterBackground(with store: InMemoryFeedStore) async throws {
         let sut = SceneDelegate(httpClient: HTTPClientStub.offline, store: store, scheduler: .immediateOnMainQueue)
         let scene = try #require(UIApplication.shared.connectedScenes.first)
         sut.sceneWillResignActive(scene)
+        await sut.cacheValidation?.value
     }
 
     private func showCommentsForFirstImage() async throws -> ListViewController {
