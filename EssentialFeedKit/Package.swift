@@ -2,10 +2,9 @@
 
 import PackageDescription
 
-/// Targets migrated to Swift 6 language mode. Nonisolated async functions run on the
-/// caller's actor, as in new Xcode projects, instead of always hopping to the global executor.
-let swift6: [SwiftSetting] = [
-    .swiftLanguageMode(.v6),
+/// Nonisolated async functions run on the caller's actor, as in new Xcode projects,
+/// instead of always hopping to the global executor.
+let approachableConcurrency: [SwiftSetting] = [
     .enableUpcomingFeature("NonisolatedNonsendingByDefault"),
 ]
 
@@ -24,47 +23,40 @@ let package = Package(
     targets: [
         .target(
             name: "EssentialFeed",
-            swiftSettings: swift6
+            swiftSettings: approachableConcurrency
         ),
         .target(
             name: "EssentialFeediOS",
             dependencies: ["EssentialFeed"],
-            swiftSettings: [
-                .defaultIsolation(MainActor.self),
-                .enableUpcomingFeature("StrictConcurrency"),
-            ]
+            swiftSettings: approachableConcurrency + [.defaultIsolation(MainActor.self)]
         ),
         .target(
             name: "EssentialFeedTestHelpers",
             dependencies: ["EssentialFeed"],
             path: "Tests/EssentialFeedTestHelpers",
-            swiftSettings: swift6
+            swiftSettings: approachableConcurrency
         ),
         .testTarget(
             name: "EssentialFeedTests",
             dependencies: ["EssentialFeed", "EssentialFeedTestHelpers"],
-            swiftSettings: swift6
+            swiftSettings: approachableConcurrency
         ),
         .testTarget(
             name: "EssentialFeedCacheIntegrationTests",
             dependencies: ["EssentialFeed", "EssentialFeedTestHelpers"],
-            swiftSettings: swift6
+            swiftSettings: approachableConcurrency
         ),
         .testTarget(
             name: "EssentialFeedAPIEndToEndTests",
             dependencies: ["EssentialFeed", "EssentialFeedTestHelpers"],
-            swiftSettings: swift6
+            swiftSettings: approachableConcurrency
         ),
         .testTarget(
             name: "EssentialFeediOSTests",
             dependencies: ["EssentialFeed", "EssentialFeediOS"],
-            exclude: ["Feed UI/snapshots", "Image Comments UI/snapshots", "Shared UI/snapshots"]
+            exclude: ["Feed UI/snapshots", "Image Comments UI/snapshots", "Shared UI/snapshots"],
+            swiftSettings: approachableConcurrency
         ),
     ],
-    swiftLanguageModes: [.v5]
+    swiftLanguageModes: [.v6]
 )
-
-// Complete concurrency checking as warnings for the targets still in Swift 5 mode.
-for target in package.targets where target.swiftSettings == nil {
-    target.swiftSettings = [.enableUpcomingFeature("StrictConcurrency")]
-}
