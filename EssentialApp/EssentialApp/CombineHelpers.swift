@@ -39,11 +39,17 @@ public extension HTTPClient {
     typealias Publisher = AnyPublisher<(Data, HTTPURLResponse), Error>
 
     func getPublisher(url: URL) -> Publisher {
-        var task: HTTPClientTask?
+        var task: Task<Void, Never>?
 
         return Deferred {
             Future { completion in
-                task = self.get(from: url, completion: completion)
+                task = Task {
+                    do {
+                        completion(.success(try await self.get(from: url)))
+                    } catch {
+                        completion(.failure(error))
+                    }
+                }
             }
         }
         .handleEvents(receiveCancel: { task?.cancel() })

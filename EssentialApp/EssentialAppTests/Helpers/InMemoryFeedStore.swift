@@ -7,37 +7,48 @@
 
 import EssentialFeed
 import Foundation
+import Synchronization
 
-class InMemoryFeedStore {
-    private(set) var feedCache: CachedFeed?
-    private var feedImageDataCache: [URL: Data] = [:]
+/// Thread-safe like the production stores: responses from the async HTTP client
+/// are cached from a background thread while the UI reads on the main thread.
+final class InMemoryFeedStore: Sendable {
+    private struct State {
+        var feedCache: CachedFeed?
+        var feedImageDataCache: [URL: Data] = [:]
+    }
+
+    private let state: Mutex<State>
+
+    var feedCache: CachedFeed? {
+        state.withLock { $0.feedCache }
+    }
 
     private init(feedCache: CachedFeed? = nil) {
-        self.feedCache = feedCache
+        state = Mutex(State(feedCache: feedCache))
     }
 }
 
 extension InMemoryFeedStore: FeedStore {
     func deleteCachedFeed() throws {
-        feedCache = nil
+        state.withLock { $0.feedCache = nil }
     }
 
     func insert(_ feed: [LocalFeedImage], timestamp: Date) throws {
-        feedCache = CachedFeed(feed: feed, timestamp: timestamp)
+        state.withLock { $0.feedCache = CachedFeed(feed: feed, timestamp: timestamp) }
     }
 
     func retrieve() throws -> CachedFeed? {
-        return feedCache
+        state.withLock { $0.feedCache }
     }
 }
 
 extension InMemoryFeedStore: FeedImageDataStore {
-    public func insert(_ data: Data, for url: URL) throws {
-        feedImageDataCache[url] = data
+    func insert(_ data: Data, for url: URL) throws {
+        state.withLock { $0.feedImageDataCache[url] = data }
     }
 
-    public func retrieve(dataForURL url: URL) throws -> Data? {
-        feedImageDataCache[url]
+    func retrieve(dataForURL url: URL) throws -> Data? {
+        state.withLock { $0.feedImageDataCache[url] }
     }
 }
 
