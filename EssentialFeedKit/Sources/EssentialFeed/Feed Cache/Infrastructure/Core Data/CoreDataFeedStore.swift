@@ -9,7 +9,8 @@ import CoreData
 
 public final class CoreDataFeedStore {
     private static let modelName = "FeedStore"
-    private static let model = NSManagedObjectModel.with(name: modelName, in: .essentialFeed)
+    // A loaded model is immutable, so sharing it between stores is safe.
+    nonisolated(unsafe) private static let model = NSManagedObjectModel.with(name: modelName, in: .essentialFeed)
 
     private let container: NSPersistentContainer
     private let context: NSManagedObjectContext
@@ -36,16 +37,16 @@ public final class CoreDataFeedStore {
         cleanUpReferencesToPersistentStores()
     }
 
-    func performSync<R>(_ action: (NSManagedObjectContext) -> Result<R, Error>) throws -> R {
+    /// Runs `action` on the context's queue. Managed objects must not escape `action`:
+    /// return value types only.
+    func perform<R: Sendable>(_ action: @escaping @Sendable (NSManagedObjectContext) throws -> R) async throws -> R {
         let context = self.context
-        var result: Result<R, Error>!
-        context.performAndWait { result = action(context) }
-        return try result.get()
+        return try await context.perform { try action(context) }
     }
 
     private func cleanUpReferencesToPersistentStores() {
+        let coordinator = container.persistentStoreCoordinator
         context.performAndWait {
-            let coordinator = self.container.persistentStoreCoordinator
             try? coordinator.persistentStores.forEach(coordinator.remove)
         }
     }
