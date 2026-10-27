@@ -10,14 +10,14 @@ import Testing
 
 // Specs for a `FeedStore` whose deletion can fail. Call them with a store set up to fail.
 
-func assertThatDeleteDeliversErrorOnDeletionError(on sut: FeedStore) {
-    #expect(throws: (any Error).self, "Expected cache deletion to fail") {
-        try sut.deleteCachedFeed()
+func assertThatDeleteDeliversErrorOnDeletionError(on sut: FeedStore) async {
+    await #expect(throws: (any Error).self, "Expected cache deletion to fail") {
+        try await sut.deleteCachedFeed()
     }
 }
 
-func assertThatDeleteHasNoSideEffectsOnDeletionError(on sut: FeedStore) throws {
-    try? sut.deleteCachedFeed()
+func assertThatDeleteHasNoSideEffectsOnDeletionError(on sut: FeedStore) async throws {
+    try? await sut.deleteCachedFeed()
 
-    try expect(sut, toRetrieve: nil)
+    try await expect(sut, toRetrieve: nil)
 }

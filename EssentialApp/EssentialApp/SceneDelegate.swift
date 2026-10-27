@@ -51,6 +51,9 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
     private lazy var baseURL = URL(string: "https://ile-api.essentialdeveloper.com/essential-feed")!
 
+    /// The cache validation started when the scene last resigned active.
+    private(set) var cacheValidation: Task<Void, Never>?
+
     convenience init(httpClient: HTTPClient, store: FeedStore & FeedImageDataStore, scheduler: AnyDispatchQueueScheduler) {
         self.init()
         self.httpClient = httpClient
@@ -72,10 +75,12 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     }
 
     func sceneWillResignActive(_ scene: UIScene) {
-        do {
-            try localFeedLoader.validateCache()
-        } catch {
-            logger.error("Failed to validate cache with error \(error.localizedDescription)")
+        cacheValidation = Task {
+            do {
+                try await localFeedLoader.validateCache()
+            } catch {
+                logger.error("Failed to validate cache with error \(error.localizedDescription)")
+            }
         }
     }
 

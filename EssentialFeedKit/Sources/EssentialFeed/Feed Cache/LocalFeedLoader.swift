@@ -18,15 +18,15 @@ public final class LocalFeedLoader {
 }
 
 extension LocalFeedLoader: FeedCache {
-    public func save(_ feed: [FeedImage]) throws {
-        try store.deleteCachedFeed()
-        try store.insert(feed.toLocal(), timestamp: currentDate())
+    public func save(_ feed: [FeedImage]) async throws {
+        try await store.deleteCachedFeed()
+        try await store.insert(feed.toLocal(), timestamp: currentDate())
     }
 }
 
 extension LocalFeedLoader {
-    public func load() throws -> [FeedImage] {
-        if let cache = try store.retrieve(), FeedCachePolicy.validate(cache.timestamp, against: currentDate()) {
+    public func load() async throws -> [FeedImage] {
+        if let cache = try await store.retrieve(), FeedCachePolicy.validate(cache.timestamp, against: currentDate()) {
             return cache.feed.toModels()
         }
 
@@ -37,13 +37,13 @@ extension LocalFeedLoader {
 extension LocalFeedLoader {
     private struct InvalidCache: Error {}
 
-    public func validateCache() throws {
+    public func validateCache() async throws {
         do {
-            if let cache = try store.retrieve(), !FeedCachePolicy.validate(cache.timestamp, against: currentDate()) {
+            if let cache = try await store.retrieve(), !FeedCachePolicy.validate(cache.timestamp, against: currentDate()) {
                 throw InvalidCache()
             }
         } catch {
-            try store.deleteCachedFeed()
+            try await store.deleteCachedFeed()
         }
     }
 }

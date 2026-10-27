@@ -12,70 +12,70 @@ import Testing
 
 @Suite(.trackingMemoryLeaks)
 struct CoreDataFeedStoreTests {
-    @Test func `Retrieve delivers empty on empty cache`() throws {
+    @Test func `Retrieve delivers empty on empty cache`() async throws {
         let sut = try makeSUT()
 
-        try assertThatRetrieveDeliversEmptyOnEmptyCache(on: sut)
+        try await assertThatRetrieveDeliversEmptyOnEmptyCache(on: sut)
     }
 
-    @Test func `Retrieve has no side effects on empty cache`() throws {
+    @Test func `Retrieve has no side effects on empty cache`() async throws {
         let sut = try makeSUT()
 
-        try assertThatRetrieveHasNoSideEffectsOnEmptyCache(on: sut)
+        try await assertThatRetrieveHasNoSideEffectsOnEmptyCache(on: sut)
     }
 
-    @Test func `Retrieve delivers found values on non-empty cache`() throws {
+    @Test func `Retrieve delivers found values on non-empty cache`() async throws {
         let sut = try makeSUT()
 
-        try assertThatRetrieveDeliversFoundValuesOnNonEmptyCache(on: sut)
+        try await assertThatRetrieveDeliversFoundValuesOnNonEmptyCache(on: sut)
     }
 
-    @Test func `Retrieve has no side effects on non-empty cache`() throws {
+    @Test func `Retrieve has no side effects on non-empty cache`() async throws {
         let sut = try makeSUT()
 
-        try assertThatRetrieveHasNoSideEffectsOnNonEmptyCache(on: sut)
+        try await assertThatRetrieveHasNoSideEffectsOnNonEmptyCache(on: sut)
     }
 
-    @Test func `Insert delivers no error on empty cache`() throws {
+    @Test func `Insert delivers no error on empty cache`() async throws {
         let sut = try makeSUT()
 
-        assertThatInsertDeliversNoErrorOnEmptyCache(on: sut)
+        await assertThatInsertDeliversNoErrorOnEmptyCache(on: sut)
     }
 
-    @Test func `Insert delivers no error on non-empty cache`() throws {
+    @Test func `Insert delivers no error on non-empty cache`() async throws {
         let sut = try makeSUT()
 
-        try assertThatInsertDeliversNoErrorOnNonEmptyCache(on: sut)
+        try await assertThatInsertDeliversNoErrorOnNonEmptyCache(on: sut)
     }
 
-    @Test func `Insert overrides previously inserted cache values`() throws {
+    @Test func `Insert overrides previously inserted cache values`() async throws {
         let sut = try makeSUT()
 
-        try assertThatInsertOverridesPreviouslyInsertedCacheValues(on: sut)
+        try await assertThatInsertOverridesPreviouslyInsertedCacheValues(on: sut)
     }
 
-    @Test func `Delete delivers no error on empty cache`() throws {
+    @Test func `Delete delivers no error on empty cache`() async throws {
         let sut = try makeSUT()
 
-        assertThatDeleteDeliversNoErrorOnEmptyCache(on: sut)
+        await assertThatDeleteDeliversNoErrorOnEmptyCache(on: sut)
     }
 
-    @Test func `Delete has no side effects on empty cache`() throws {
+    @Test func `Delete has no side effects on empty cache`() async throws {
         let sut = try makeSUT()
 
-        try assertThatDeleteHasNoSideEffectsOnEmptyCache(on: sut)
+        try await assertThatDeleteHasNoSideEffectsOnEmptyCache(on: sut)
     }
 
-    @Test func `Delete delivers no error on non-empty cache`() throws {
+    @Test func `Delete delivers no error on non-empty cache`() async throws {
         let sut = try makeSUT()
 
-        try assertThatDeleteDeliversNoErrorOnNonEmptyCache(on: sut)
+        try await assertThatDeleteDeliversNoErrorOnNonEmptyCache(on: sut)
     }
 
-    @Test func `Delete empties previously inserted cache`() throws {
+    @Test func `Delete empties previously inserted cache`() async throws {
         let sut = try makeSUT()
 
-        try assertThatDeleteEmptiesPreviouslyInsertedCache(on: sut)
+        try await assertThatDeleteEmptiesPreviouslyInsertedCache(on: sut)
     }
 
     // MARK: - Helpers
