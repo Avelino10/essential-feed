@@ -17,14 +17,14 @@ EssentialFeedKit/
     ├── EssentialFeediOSTests
     ├── EssentialFeedCacheIntegrationTests
     ├── EssentialFeedAPIEndToEndTests
-    └── EssentialFeedTestHelpers    # helpers shared by the core test targets
+    └── EssentialFeedTestHelpers    # shared by the package and app tests (leak tracking, async spies)
 ```
 
 | Module | Description |
 |---|---|
 | `EssentialFeed` | Platform-agnostic core module: feed and image comments domain models, API loading/mapping, caching, and presentation logic. No UIKit dependency. |
 | `EssentialFeediOS` | UIKit-based UI layer (view controllers and views) for the feed and image comments features. |
-| `EssentialApp` | The composed iOS application — wires together `EssentialFeed` and `EssentialFeediOS`, including navigation, remote/local loader composition with fallback and caching, and app lifecycle. |
+| `EssentialApp` | The composed iOS application — wires together `EssentialFeed` and `EssentialFeediOS`, including navigation, async loading with remote-first fallback and caching (`FeedLoaders`), and app lifecycle. |
 | `Prototype` | Standalone UI prototype used for design exploration, independent of the production modules. |
 
 Within `EssentialFeed`, code is organized by feature and layer:
@@ -53,7 +53,7 @@ Test targets mirror this structure:
 
 ## Requirements
 
-- Xcode 27 (Swift 5 language mode)
+- Xcode 27, Swift 6 language mode in every module
 - iOS 18.0+
 - macOS 15.0+ (the core tests also run on macOS)
 
@@ -115,5 +115,9 @@ Both jobs run on the `xcode-27` runner with Xcode 27.0, and the iOS job uses the
 ## Architecture notes
 
 - **Framework independence**: `EssentialFeed` has no UIKit or app-level dependencies, so it can be tested and reused independently of any UI.
-- **Composition over inheritance**: `EssentialApp` composes remote and local data sources (e.g. remote-with-local-fallback, caching decorators) rather than baking that logic into the core loaders.
-- **MVP/MVVM-C presentation**: presenters and view models live in `EssentialFeed`, translating domain events into view-agnostic state that `EssentialFeediOS` renders..
+- **async/await end to end**: `HTTPClient`, the stores and the local loaders are `async throws`. `URLSessionHTTPClient` uses `URLSession`'s async API and `CoreDataFeedStore` runs its work with `NSManagedObjectContext.perform`, so cancelling the calling `Task` cancels the request. There's no Combine.
+- **Data-race safety**: every module compiles in Swift 6 language mode. Domain models, view models, stores and loaders are `Sendable`; presenters and the resource view protocols are `@MainActor`, and `EssentialFeediOS` uses main-actor default isolation. Nonisolated async functions run on their caller's actor (`NonisolatedNonsendingByDefault`), and the app's loading work is `@concurrent`, so it runs off the main actor.
+- **Composition over inheritance**: `EssentialApp` composes remote and local data sources in `FeedLoaders` (remote first, cached as it arrives, falling back to the cache) rather than baking that logic into the core loaders. Pagination is an async `loadMore` closure on `Paginated`.
+- **Cancellable loads**: `LoadResourcePresentationAdapter` runs each load in a main-actor `Task`, ignores reloads while one is in flight, and cancels it when an image cell scrolls away or its screen is deallocated.
+- **MVP/MVVM-C presentation**: presenters and view models live in `EssentialFeed`, translating domain events into view-agnostic state that `EssentialFeediOS` renders.
+- **Tests**: Swift Testing throughout. Suites track memory leaks with a `.trackingMemoryLeaks` trait, and the UI integration tests drive screens through spies that hold each request's continuation until the test completes it.
