@@ -451,7 +451,7 @@ struct FeedUIIntegrationTests {
 
     // MARK: - Helpers
 
-    private func makeSUT(selection: @escaping (FeedImage) -> Void = { _ in }) -> (sut: ListViewController, loader: LoaderSpy) {
+    private func makeSUT(selection: @escaping @MainActor (FeedImage) -> Void = { _ in }) -> (sut: ListViewController, loader: LoaderSpy) {
         let loader = LoaderSpy()
         let sut = FeedUIComposer.feedComposedWith(
             feedLoader: { try await loader.loadFeed() },
