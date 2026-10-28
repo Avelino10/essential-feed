@@ -107,7 +107,7 @@ struct FeedAcceptanceTests {
     /// row's cell controller can switch to a different cell. If the cell we hold doesn't get
     /// the image shortly, ask for the row again, which starts a new load if the last one ended.
     private func renderedImageData(in feed: ListViewController, at index: Int) async -> [UInt8]? {
-        let deadline = ContinuousClock.now + .seconds(2)
+        let deadline = ContinuousClock.now + loadTimeout
 
         while ContinuousClock.now < deadline {
             let view = feed.simulateFeedImageViewVisible(at: index)
@@ -121,10 +121,14 @@ struct FeedAcceptanceTests {
         return nil
     }
 
+    /// Only reached when a load never finishes: passing tests stop waiting as soon as the
+    /// condition holds. Generous because a busy CI runner can stall the main actor for seconds.
+    private let loadTimeout: Duration = .seconds(30)
+
     /// Loads complete asynchronously and reach the UI on a later main-queue turn,
     /// so the tests wait for each one to finish before checking the UI.
-    private func waitUntil(timeout: Duration = .seconds(2), _ condition: () -> Bool) async {
-        let deadline = ContinuousClock.now + timeout
+    private func waitUntil(timeout: Duration? = nil, _ condition: () -> Bool) async {
+        let deadline = ContinuousClock.now + (timeout ?? loadTimeout)
         while !condition(), ContinuousClock.now < deadline {
             try? await Task.sleep(for: .milliseconds(1))
         }

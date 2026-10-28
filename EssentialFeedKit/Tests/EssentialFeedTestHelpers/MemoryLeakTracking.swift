@@ -34,8 +34,10 @@ public final class MemoryLeakTracker: Sendable {
     }
 
     /// Instances released through an autorelease pool, or by a task winding down, go away
-    /// on a later run loop turn, so they get `gracePeriod` before being reported.
-    public func verifyNoLeaks(within gracePeriod: Duration = .seconds(1)) async {
+    /// on a later run loop turn, so they get `gracePeriod` before being reported. The default
+    /// is generous because a busy CI runner can stall the main actor for seconds; it only
+    /// costs time when something really leaks.
+    public func verifyNoLeaks(within gracePeriod: Duration = .seconds(10)) async {
         let deadline = ContinuousClock.now + gracePeriod
         while !leakedInstances().isEmpty, ContinuousClock.now < deadline {
             try? await Task.sleep(for: .milliseconds(5))

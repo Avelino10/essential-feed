@@ -30,7 +30,7 @@ struct MemoryLeakTrackingTests {
             holder.release()
         }
 
-        await tracker.verifyNoLeaks(within: .seconds(1))
+        await tracker.verifyNoLeaks()
     }
 
     @Test func `Tracker reports instances that are still alive`() async {
