@@ -27,15 +27,15 @@ final class EssentialFeedCacheIntegrationTests {
 
     // MARK: - LocalFeedLoader Tests
 
-    @Test func `Load delivers no items on empty cache`() async throws {
-        let feedLoader = try makeFeedLoader()
+    @Test(arguments: Store.allCases) func `Load delivers no items on empty cache`(store: Store) async throws {
+        let feedLoader = try makeFeedLoader(store)
 
         #expect(try await feedLoader.load() == [])
     }
 
-    @Test func `Load delivers items saved on a separate instance`() async throws {
-        let feedLoaderToPerformSave = try makeFeedLoader()
-        let feedLoaderToPerformLoad = try makeFeedLoader()
+    @Test(arguments: Store.allCases) func `Load delivers items saved on a separate instance`(store: Store) async throws {
+        let feedLoaderToPerformSave = try makeFeedLoader(store)
+        let feedLoaderToPerformLoad = try makeFeedLoader(store)
         let feed = uniqueImageFeed().models
 
         try await feedLoaderToPerformSave.save(feed)
@@ -43,10 +43,10 @@ final class EssentialFeedCacheIntegrationTests {
         #expect(try await feedLoaderToPerformLoad.load() == feed)
     }
 
-    @Test func `Save overrides items saved on a separate instance`() async throws {
-        let feedLoaderToPerformFirstSave = try makeFeedLoader()
-        let feedLoaderToPerformLastSave = try makeFeedLoader()
-        let feedLoaderToPerformLoad = try makeFeedLoader()
+    @Test(arguments: Store.allCases) func `Save overrides items saved on a separate instance`(store: Store) async throws {
+        let feedLoaderToPerformFirstSave = try makeFeedLoader(store)
+        let feedLoaderToPerformLastSave = try makeFeedLoader(store)
+        let feedLoaderToPerformLoad = try makeFeedLoader(store)
         let firstFeed = uniqueImageFeed().models
         let latestFeed = uniqueImageFeed().models
 
@@ -56,9 +56,9 @@ final class EssentialFeedCacheIntegrationTests {
         #expect(try await feedLoaderToPerformLoad.load() == latestFeed)
     }
 
-    @Test func `Validate feed cache does not delete recently saved feed`() async throws {
-        let feedLoaderToPerformSave = try makeFeedLoader()
-        let feedLoaderToPerformValidation = try makeFeedLoader()
+    @Test(arguments: Store.allCases) func `Validate feed cache does not delete recently saved feed`(store: Store) async throws {
+        let feedLoaderToPerformSave = try makeFeedLoader(store)
+        let feedLoaderToPerformValidation = try makeFeedLoader(store)
         let feed = uniqueImageFeed().models
 
         try await feedLoaderToPerformSave.save(feed)
@@ -67,9 +67,9 @@ final class EssentialFeedCacheIntegrationTests {
         #expect(try await feedLoaderToPerformSave.load() == feed)
     }
 
-    @Test func `Validate feed cache deletes feed saved in a distant past`() async throws {
-        let feedLoaderToPerformSave = try makeFeedLoader(currentDate: .distantPast)
-        let feedLoaderToPerformValidation = try makeFeedLoader(currentDate: Date())
+    @Test(arguments: Store.allCases) func `Validate feed cache deletes feed saved in a distant past`(store: Store) async throws {
+        let feedLoaderToPerformSave = try makeFeedLoader(store, currentDate: .distantPast)
+        let feedLoaderToPerformValidation = try makeFeedLoader(store, currentDate: Date())
         let feed = uniqueImageFeed().models
 
         try await feedLoaderToPerformSave.save(feed)
@@ -80,10 +80,10 @@ final class EssentialFeedCacheIntegrationTests {
 
     // MARK: - LocalFeedImageDataLoader Tests
 
-    @Test func `Load image data delivers saved data on a separate instance`() async throws {
-        let imageLoaderToPerformSave = try makeImageLoader()
-        let imageLoaderToPerformLoad = try makeImageLoader()
-        let feedLoader = try makeFeedLoader()
+    @Test(arguments: Store.allCases) func `Load image data delivers saved data on a separate instance`(store: Store) async throws {
+        let imageLoaderToPerformSave = try makeImageLoader(store)
+        let imageLoaderToPerformLoad = try makeImageLoader(store)
+        let feedLoader = try makeFeedLoader(store)
         let image = uniqueImage()
         let dataToSave = anyData()
 
@@ -93,11 +93,11 @@ final class EssentialFeedCacheIntegrationTests {
         #expect(try await imageLoaderToPerformLoad.loadImageData(from: image.url) == dataToSave)
     }
 
-    @Test func `Save image data overrides saved image data on a separate instance`() async throws {
-        let imageLoaderToPerformFirstSave = try makeImageLoader()
-        let imageLoaderToPerformLastSave = try makeImageLoader()
-        let imageLoaderToPerformLoad = try makeImageLoader()
-        let feedLoader = try makeFeedLoader()
+    @Test(arguments: Store.allCases) func `Save image data overrides saved image data on a separate instance`(store: Store) async throws {
+        let imageLoaderToPerformFirstSave = try makeImageLoader(store)
+        let imageLoaderToPerformLastSave = try makeImageLoader(store)
+        let imageLoaderToPerformLoad = try makeImageLoader(store)
+        let feedLoader = try makeFeedLoader(store)
         let image = uniqueImage()
         let firstImageData = Data("first".utf8)
         let lastImageData = Data("last".utf8)
@@ -111,8 +111,8 @@ final class EssentialFeedCacheIntegrationTests {
 
     // MARK: - Helpers
 
-    private func makeFeedLoader(currentDate: Date = Date()) throws -> LocalFeedLoader {
-        let store = try CoreDataFeedStore(storeURL: testSpecificStoreURL())
+    private func makeFeedLoader(_ store: Store, currentDate: Date = Date()) throws -> LocalFeedLoader {
+        let store = try store.make(at: testSpecificStoreURL())
         let sut = LocalFeedLoader(store: store, currentDate: { currentDate })
 
         trackForMemoryLeaks(store)
@@ -121,8 +121,8 @@ final class EssentialFeedCacheIntegrationTests {
         return sut
     }
 
-    private func makeImageLoader() throws -> LocalFeedImageDataLoader {
-        let store = try CoreDataFeedStore(storeURL: testSpecificStoreURL())
+    private func makeImageLoader(_ store: Store) throws -> LocalFeedImageDataLoader {
+        let store = try store.make(at: testSpecificStoreURL())
         let sut = LocalFeedImageDataLoader(store: store)
 
         trackForMemoryLeaks(store)
@@ -133,5 +133,25 @@ final class EssentialFeedCacheIntegrationTests {
 
     private func testSpecificStoreURL() -> URL {
         storeDirectory.appendingPathComponent("feed.store")
+    }
+
+    /// The store implementations the app can cache with. Each runs the whole suite.
+    enum Store: CaseIterable, CustomTestStringConvertible {
+        case coreData
+        case swiftData
+
+        func make(at storeURL: URL) throws -> any FeedStore & FeedImageDataStore & AnyObject {
+            switch self {
+                case .coreData: try CoreDataFeedStore(storeURL: storeURL)
+                case .swiftData: try SwiftDataFeedStore(storeURL: storeURL)
+            }
+        }
+
+        var testDescription: String {
+            switch self {
+                case .coreData: "Core Data"
+                case .swiftData: "SwiftData"
+            }
+        }
     }
 }
