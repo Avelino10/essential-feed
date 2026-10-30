@@ -21,14 +21,12 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     private lazy var logger = Logger(subsystem: "com.avelino.EssentialFeed", category: "main")
 
     private lazy var store: FeedStore & FeedImageDataStore = {
+        let cacheStore = CacheStore(launchArguments: ProcessInfo.processInfo.arguments)
         do {
-            return try CoreDataFeedStore(
-                storeURL: NSPersistentContainer
-                    .defaultDirectoryURL()
-                    .appendingPathComponent("feed-store.sqlite"))
+            return try cacheStore.make(in: NSPersistentContainer.defaultDirectoryURL())
         } catch {
-            logger.fault("Failed to instantiate CoreData store with error: \(error.localizedDescription)")
-            assertionFailure("Failed to instantiate CoreData store with error: \(error.localizedDescription)")
+            logger.fault("Failed to instantiate \(cacheStore.rawValue) store with error: \(error.localizedDescription)")
+            assertionFailure("Failed to instantiate \(cacheStore.rawValue) store with error: \(error.localizedDescription)")
             return NullStore()
         }
     }()

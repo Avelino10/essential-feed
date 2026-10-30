@@ -55,6 +55,19 @@ struct CoreDataFeedImageDataStoreTests {
         #expect(receivedData == lastStoredData)
     }
 
+    @Test func `Retrieve image data delivers stored data after saving a feed that still contains the image`() async throws {
+        let sut = try makeSUT()
+        let storedData = anyData()
+        let url = URL(string: "http://a-url.com")!
+
+        try await insert(storedData, for: url, into: sut)
+        try await sut.deleteCachedFeed()
+        try await sut.insert([localImage(url: url), localImage(url: anyURL())], timestamp: Date())
+
+        let receivedData = try await sut.retrieve(dataForURL: url)
+        #expect(receivedData == storedData)
+    }
+
     // MARK: - Helpers
 
     private func makeSUT() throws -> FeedStore & FeedImageDataStore {

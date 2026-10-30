@@ -40,6 +40,7 @@ extension ManagedFeedImage {
             managed.imageDescription = local.description
             managed.location = local.location
             managed.url = local.url
+            managed.data = context.userInfo[local.url] as? Data
             return managed
         })
 
