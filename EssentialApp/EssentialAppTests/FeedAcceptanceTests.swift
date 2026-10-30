@@ -14,7 +14,7 @@ import UIKit
 @MainActor
 struct FeedAcceptanceTests {
     @Test func `On launch displays remote feed when customer has connectivity`() async throws {
-        let feed = try await launch(httpClient: .online { response(for: $0) }, store: .empty)
+        let feed = try await launch(httpClient: .online { response(for: $0) })
 
         #expect(feed.numberOfRenderedFeedImageViews() == 2)
         #expect(await renderedImageData(in: feed, at: 0) == makeImageData0().imagePixels)
@@ -38,15 +38,16 @@ struct FeedAcceptanceTests {
         #expect(!feed.canLoadMoreFeed)
     }
 
-    @Test func `On launch displays cached remote feed when customer has no connectivity`() async throws {
-        let sharedStore = InMemoryFeedStore.empty
+    @Test(arguments: CacheStore.allCases)
+    func `On launch displays cached remote feed when customer has no connectivity`(cacheStore: CacheStore) async throws {
+        let storeDirectory = try makeStoreDirectory()
 
-        let onlineFeed = try await launch(httpClient: .online { response(for: $0) }, store: sharedStore)
+        let onlineFeed = try await launch(httpClient: .online { response(for: $0) }, store: cacheStore.make(in: storeDirectory))
         _ = await renderedImageData(in: onlineFeed, at: 0)
         _ = await renderedImageData(in: onlineFeed, at: 1)
         await loadMore(in: onlineFeed)
         _ = await renderedImageData(in: onlineFeed, at: 2)
-        let offlineFeed = try await launch(httpClient: .offline, store: sharedStore)
+        let offlineFeed = try await launch(httpClient: .offline, store: cacheStore.make(in: storeDirectory))
 
         #expect(offlineFeed.numberOfRenderedFeedImageViews() == 3)
         #expect(await renderedImageData(in: offlineFeed, at: 0) == makeImageData0().imagePixels)
@@ -54,8 +55,11 @@ struct FeedAcceptanceTests {
         #expect(await renderedImageData(in: offlineFeed, at: 2) == makeImageData2().imagePixels)
     }
 
-    @Test func `On launch displays empty feed when customer has no connectivity and no cache`() async throws {
-        let feed = try await launch(httpClient: .offline, store: .empty)
+    @Test(arguments: CacheStore.allCases)
+    func `On launch displays empty feed when customer has no connectivity and no cache`(cacheStore: CacheStore) async throws {
+        let storeDirectory = try makeStoreDirectory()
+
+        let feed = try await launch(httpClient: .offline, store: cacheStore.make(in: storeDirectory))
 
         #expect(feed.numberOfRenderedFeedImageViews() == 0)
     }
@@ -85,7 +89,7 @@ struct FeedAcceptanceTests {
 
     // MARK: - Helpers
 
-    private func launch(httpClient: HTTPClientStub = .offline, store: InMemoryFeedStore = .empty) async throws -> ListViewController {
+    private func launch(httpClient: HTTPClientStub = .offline, store: FeedStore & FeedImageDataStore = InMemoryFeedStore.empty) async throws -> ListViewController {
         let sut = SceneDelegate(httpClient: httpClient, store: store)
         sut.window = UIWindow(frame: CGRect(x: 0, y: 0, width: 1, height: 1))
         sut.configureWindow()
@@ -130,6 +134,21 @@ struct FeedAcceptanceTests {
         }
     }
 
+    /// The launched UI keeps its store open after the test ends, so the store files are never
+    /// deleted mid-run. Each run clears the previous run's files instead.
+    private static let storesDirectory: URL = {
+        let directory = FileManager.default.temporaryDirectory
+            .appendingPathComponent("\(FeedAcceptanceTests.self)", isDirectory: true)
+        try? FileManager.default.removeItem(at: directory)
+        return directory
+    }()
+
+    private func makeStoreDirectory() throws -> URL {
+        let directory = Self.storesDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        return directory
+    }
+
     private func enterBackground(with store: InMemoryFeedStore) async throws {
         let sut = SceneDelegate(httpClient: HTTPClientStub.offline, store: store)
         let scene = try #require(UIApplication.shared.connectedScenes.first)
@@ -138,7 +157,7 @@ struct FeedAcceptanceTests {
     }
 
     private func showCommentsForFirstImage() async throws -> ListViewController {
-        let feed = try await launch(httpClient: .online { response(for: $0) }, store: .empty)
+        let feed = try await launch(httpClient: .online { response(for: $0) })
 
         feed.simulateTapOnFeedImage(at: 0)
 
