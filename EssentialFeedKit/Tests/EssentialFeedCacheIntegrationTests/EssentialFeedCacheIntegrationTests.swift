@@ -109,6 +109,23 @@ final class EssentialFeedCacheIntegrationTests {
         #expect(try await imageLoaderToPerformLoad.loadImageData(from: image.url) == lastImageData)
     }
 
+    @Test(arguments: Store.allCases)
+    func `Load image data delivers saved data after saving the feed again`(store: Store) async throws {
+        let storeToPerformSaves = try store.make(at: testSpecificStoreURL())
+        let feedLoaderToPerformSaves = LocalFeedLoader(store: storeToPerformSaves, currentDate: Date.init)
+        let imageLoaderToPerformSave = LocalFeedImageDataLoader(store: storeToPerformSaves)
+        let imageLoaderToPerformLoad = try makeImageLoader(store)
+        let image = uniqueImage()
+        let dataToSave = anyData()
+        trackForMemoryLeaks(storeToPerformSaves)
+
+        try await feedLoaderToPerformSaves.save([image])
+        try await imageLoaderToPerformSave.save(dataToSave, for: image.url)
+        try await feedLoaderToPerformSaves.save([image, uniqueImage()])
+
+        #expect(try await imageLoaderToPerformLoad.loadImageData(from: image.url) == dataToSave)
+    }
+
     // MARK: - Helpers
 
     private func makeFeedLoader(_ store: Store, currentDate: Date = Date()) throws -> LocalFeedLoader {

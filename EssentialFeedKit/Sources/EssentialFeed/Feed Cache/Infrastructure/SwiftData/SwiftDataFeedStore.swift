@@ -10,7 +10,11 @@ import SwiftData
 
 /// A feed store backed by SwiftData. Models never leave the actor: it only hands out values.
 @ModelActor
-public actor SwiftDataFeedStore {}
+public actor SwiftDataFeedStore {
+    /// Image data lives on the cached images, and saving a feed deletes the old one first.
+    /// Keeping the deleted images' data until the next insert lets images still in the new feed keep it.
+    private var deletedImageData = [URL: Data]()
+}
 
 extension SwiftDataFeedStore {
     public init(storeURL: URL) throws {
@@ -29,9 +33,12 @@ extension SwiftDataFeedStore: FeedStore {
     public func insert(_ feed: [LocalFeedImage], timestamp: Date) throws {
         try deleteCaches()
 
-        let images = feed.enumerated().map { position, image in
-            SwiftDataFeedImage(image, position: position)
+        let images = feed.enumerated().map { position, local in
+            let image = SwiftDataFeedImage(local, position: position)
+            image.data = deletedImageData[local.url]
+            return image
         }
+        deletedImageData = [:]
         modelContext.insert(SwiftDataFeedCache(timestamp: timestamp, feed: images))
 
         try modelContext.save()
@@ -48,6 +55,9 @@ extension SwiftDataFeedStore: FeedStore {
 
     private func deleteCaches() throws {
         for cache in try caches() {
+            for image in cache.feed {
+                if let data = image.data { deletedImageData[image.url] = data }
+            }
             modelContext.delete(cache)
         }
     }
